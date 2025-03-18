@@ -1,0 +1,304 @@
+name: Build static Qt
+
+on:
+  workflow_dispatch:
+    inputs:
+      buildtype:
+        description: 'Build type'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - linux
+        - windows
+        - macos
+        - all
+  push:
+    tags:
+      - '*-*' # Only tags with build number
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    env:
+      BUILD_LINUX: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'linux') }}
+      BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
+      BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
+    runs-on: ubuntu-latest
+    outputs:
+      activeos: ${{ steps.setup.outputs.runner }}
+      qt_version: ${{ steps.setup.outputs.qt_version }}
+      version_tag: ${{ steps.setup.outputs.version_tag }}
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Find Qt version
+        id: get_version
+        shell: python
+        run: |
+          import re
+          import os
+
+          with open("action.yml") as f:
+            action_content = f.read()
+          match = re.search(r"VERSION_TAG: v([\d.]+)", action_content)
+          match2 = re.search(r"VERSION_TAG: v([\d.-]+)", action_content)
+          print("Found Qt version:", match[1])
+          print("Version TAG:", match2[1])
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+            f.write("QT_VERSION=" + match[1] + "\n" + "VERSION_TAG=" + match2[1])
+
+      - name: Check os to build
+        id: setup
+        run: |
+          ARRAY=()
+          if [ ${{ env.BUILD_LINUX }} = true  ]; then
+            ARRAY+=('ubuntu-latest')
+          fi
+          if [ ${{ env.BUILD_WINDOWS }} = true  ]; then
+            ARRAY+=('windows-latest')
+          fi
+          if [ ${{ env.BUILD_MACOS }} = true  ]; then
+            ARRAY+=('macos-latest')
+          fi
+          json='runner='
+          json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
+          echo $json
+          echo $json >> $GITHUB_OUTPUT
+          echo qt_version=$QT_VERSION >> $GITHUB_OUTPUT
+          echo version_tag=$VERSION_TAG >> $GITHUB_OUTPUT
+
+      - name: Check if sources from cache are availabe
+        id: cache-qt-check
+        uses: actions/cache/restore@v4
+        with:
+          key:  ${{env.QT_VERSION}}_src
+          path: "~/qtsrc"
+          enableCrossOsArchive: true
+          lookup-only: true
+
+      - name: Clone Qt repo
+        if: steps.cache-qt-check.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          mkdir qtsrc
+          cd qtsrc
+          git clone https://code.qt.io/qt/qt5.git . -b '${{env.QT_VERSION}}'
+          perl init-repository
+          cd ~
+  
+      - name: Save Qt Sources to cache if new
+        id: cache-qt-save
+        if: always() &&  steps.cache-qt-check.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ steps.cache-qt-check.outputs.cache-primary-key }}
+          path: "~/qtsrc"
+          enableCrossOsArchive: true
+
+
+  build:
+    needs: setup
+    env: 
+      QT_VERSION: ${{needs.setup.outputs.qt_version}}
+      VERSION_TAG: ${{needs.setup.outputs.version_tag}}
+    outputs:
+      qt_version: ${{needs.setup.outputs.qt_version}}
+      version_tag: ${{needs.setup.outputs.version_tag}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.setup.outputs.activeos) }}
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Linux libraries
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt remove clang-12
+          sudo apt remove clang-13
+          sudo apt remove clang-14
+          sudo apt remove clang-15
+          sudo apt remove clang-16
+          sudo apt remove clang-17
+          sudo apt-get install -y clang-18
+          sudo apt-get install -y $(cat linux_packages.txt)
+
+      - name: Set up Ninja 
+        uses: seanmiddleditch/gha-setup-ninja@v5    
+
+      - name: Set home dir (Ubuntu & MacOS)
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
+        run: |
+          echo "HOME_DIR=~" >> $GITHUB_ENV 
+    
+      - name: Set home dir (Windows)
+        if: contains(matrix.os, 'windows')
+        run: |
+          echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Restore sources from cache 
+        id: cache-qt-restore
+        uses: actions/cache/restore@v4
+        with:
+          key:  ${{env.QT_VERSION}}_src
+          path: "~/qtsrc"
+          enableCrossOsArchive: true
+        #lookup-only: true
+
+      #REMOVED, D: DISK IS FASTER
+      #- name: Fix src location windows
+      #  if: contains(matrix.os, 'windows')
+      #  run: |
+      #    cd ~
+      #    ls D:\
+      #    ls D:\a\install-qt-static\install-qt-static 
+      #    move D:\qtsrc .
+
+         
+
+      - name: Free Disk Space (Ubuntu)
+        if: contains(matrix.os, 'ubuntu')
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+        
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+
+
+      - name: Set up MinGW (Windows)
+        id: install_cc
+        uses: rlalik/setup-cpp-compiler@master
+        if: contains(matrix.os, 'windows')
+        with:
+          compiler: latest
+
+      - name: add new MinGW to PATH environment variable
+        if: contains(matrix.os, 'windows')
+        uses: myci-actions/export-env-var-powershell@1
+        with:
+          name: PATH
+          value: C:\ProgramData\mingw64\mingw32\bin;C:\ProgramData\mingw64\mingw64\bin;$env:PATH
+
+      #- name: Set up MSYS (Windows)
+      #  id: install_msys
+      #  uses: msys2/setup-msys2@v2
+      #  if: contains(matrix.os, 'windows')
+          
+
+
+      - name: Restore previous build for system if tag is same
+        id: cache-build-restore
+        uses: actions/cache/restore@v4
+        with:
+          key:  ${{env.VERSION_TAG}}-${{matrix.os}}
+          path: "${{env.HOME_DIR}}/qt_build"
+
+
+      - name: Build Qt (Windows)
+        if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        env:
+          CL: /MP # Build with multiple processes
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+        run: |
+          cd ${{env.HOME_DIR}}
+          $Env:Path
+          mkdir qt_build
+          cd qt_build
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebview,qtwebengine
+          cmake --build . --parallel 4 -j4
+
+      - name: Build Qt (macOS)
+        if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        run: |
+          cd ${{env.HOME_DIR}}
+          mkdir qt_build
+          cd qt_build
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebview,qtwebengine -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          cmake --build . --parallel 3 -j3
+
+      - name: Build Qt (linux)
+        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        run: |
+          cd ${{env.HOME_DIR}}
+          mkdir qt_build
+          cd qt_build
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -skip qtwebview,qtwebengine -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18
+          cmake --build . --parallel 4 -j4
+
+
+      - name: Install build 
+        if: success() 
+        run: |
+          cd ${{env.HOME_DIR}}
+          cd qt_build
+          cmake --install .
+          cd ..
+
+      - name: Save build if successful if version tag is same
+        id: cache-build-save
+        if: success() && steps.cache-build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ steps.cache-build-restore.outputs.cache-primary-key }}
+          path: "${{env.HOME_DIR}}/qt_build"
+
+      - name: Package binaries
+        run: |
+          cd ${{env.HOME_DIR}}
+          7z a qt-${{env.QT_VERSION}}-static-${{matrix.os}}.zip qt_static
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qt-static-${{matrix.os}}
+          path:  ${{env.HOME_DIR}}/qt-${{env.QT_VERSION}}-static-${{matrix.os}}.zip
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    env: 
+      QT_VERSION: ${{needs.build.outputs.qt_version}}
+      VERSION_TAG: ${{needs.build.outputs.version_tag}}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Shorthand tags
+        id: tag
+        run: |
+          git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          TAGDEL=v${QT_VERSION%.*}
+          TAG=v${QT_VERSION}-$(date '+%Y%m%d_%H%M')
+          git tag -d $TAGDEL || true
+          git tag $TAG -m "Published version $TAG"
+          git push -f origin $TAG
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          
+      - uses: softprops/action-gh-release@v2
+        name: Do release
+        with:
+          files: release/*
+          tag_name: ${{ steps.tag.outputs.tag }}
+
