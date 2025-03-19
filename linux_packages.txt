@@ -59,14 +59,12 @@ libxkbcommon-x11-dev
 libxrender-dev
 libfreetype6-dev
 libxcb-sync0-dev
-freeglut3
 freeglut3-dev
 libglew-dev
 libglfw3-dev
 libglm-dev
 libao-dev
 libmpg123-dev
-libglvnd-devel
 libgl1-mesa*
 libxcursor-dev
 libxinerama-dev
