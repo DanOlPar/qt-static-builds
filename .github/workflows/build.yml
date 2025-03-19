@@ -222,7 +222,7 @@ jobs:
           $Env:Path
           mkdir qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebview,qtwebengine
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite
           cmake --build . --parallel 4 -j4
 
       - name: Build Qt (macOS)
@@ -231,7 +231,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebview,qtwebengine -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           cmake --build . --parallel 3 -j3
 
       - name: Build Qt (linux)
@@ -240,7 +240,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -skip qtwebview,qtwebengine -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite  -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18
           cmake --build . --parallel 4 -j4
 
 
