@@ -286,11 +286,12 @@ jobs:
           merge-multiple: true
       - name: Shorthand tags
         id: tag
+        #OLD TAG WAS QT VERSION WITH DATETIME, NOW IS VERSION TAG "TAG=v${QT_VERSION}-$(date '+%Y%m%d_%H%M')"
         run: |
           git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          TAGDEL=v${QT_VERSION%.*}
-          TAG=v${QT_VERSION}-$(date '+%Y%m%d_%H%M')
+          TAGDEL=v${VERSION_TAG%.*}
+          TAG=v${VERSION_TAG}
           git tag -d $TAGDEL || true
           git tag $TAG -m "Published version $TAG"
           git push -f origin $TAG
