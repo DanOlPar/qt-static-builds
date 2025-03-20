@@ -80,9 +80,9 @@ libwayland-server0
 libgles2-mesa-dev
 xkbfile*
 npm
-libxshmfence
-libxcomposite
-libxtst 
+libxshmfence-dev
+libxcomposite-dev
+libxtst-dev
 ffmpeg 
 libgstreamer1.0-dev 
 libgstreamer-plugins-base1.0-dev 
