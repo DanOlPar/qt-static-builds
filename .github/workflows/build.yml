@@ -244,7 +244,7 @@ jobs:
           $Env:Path
           mkdir qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -ffmpeg-dir ${{steps.setup-ffmpeg.outputs.ffmpeg-path}}
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite --ffmpeg-dir ${{steps.setup-ffmpeg.outputs.ffmpeg-path}}
           cmake --build . --parallel 4 -j4
 
       - name: Build Qt (macOS)
@@ -262,7 +262,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite  -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -ffmpeg-dir ${{steps.setup-ffmpeg.outputs.ffmpeg-path}}
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -ffmpeg-dir ${{steps.setup-ffmpeg.outputs.ffmpeg-path}}  -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 
           cmake --build . --parallel 4 -j4
 
 
