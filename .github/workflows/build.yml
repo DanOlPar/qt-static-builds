@@ -198,7 +198,7 @@ jobs:
 
 
       - name: Setup ffmpeg
-        uses: FedericoCarboni/setup-ffmpeg@master
+        uses: FedericoCarboni/setup-ffmpeg@main
         id: setup-ffmpeg
         if: contains(matrix.os, 'windows') || contains(matrix.os, 'linux')
         with:
