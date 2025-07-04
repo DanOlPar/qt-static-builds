@@ -165,16 +165,16 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           key:  ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-          path: "${{env.HOME_DIR}}/FFmpeg/build"
+          path: "${{env.HOME_DIR}}/ffmpeg/build"
 
-      - name: Clone FFmpeg 
+      - name: Clone ffmpeg 
         if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           git clone --branch n${{env.FFMPEG_VERSION}} https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
 
-      - name: Configure FFmpeg (Windows)
+      - name: Configure ffmpeg (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         env:
           CL: /MP # Build with multiple processes
@@ -182,41 +182,41 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR}}
-          cd FFmpeg
+          cd ffmpeg
           mkdir build
           cd build
           ../configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug
    
-      - name: Configure FFmpeg (Ubuntu)
+      - name: Configure ffmpeg (Ubuntu)
         if: contains(matrix.os, 'ubuntu') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
-          cd FFmpeg
+          cd ffmpeg
           mkdir build
           cd build
           ../configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug
    
-      - name: Build FFmpeg (Windows)
+      - name: Build ffmpeg (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cd ${{env.HOME_DIR}}/FFmpeg/build
-          cmake --build . --parallel 4 -j4
+          cd ${{env.HOME_DIR}}/ffmpeg/build
+          make install --parallel 4 -j4
   
-      - name: Build FFmpeg (linux)
+      - name: Build ffmpeg (linux)
         if: contains(matrix.os, 'ubuntu') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
-          cd ${{env.HOME_DIR}}/FFmpeg/build
-          cmake --build . --parallel 4 -j4
+          cd ${{env.HOME_DIR}}/ffmpeg/build
+          make install --parallel 4 -j4
 
-      - name: Install FFmpeg 
-        if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
-        run: |
-          cd ${{env.HOME_DIR}}/FFmpeg/build
-          make -j install
+      #- name: Install ffmpeg 
+      #  if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
+      #  run: |
+      #    cd ${{env.HOME_DIR}}/ffmpeg/build
+      #    make -j install
 
       - name: Save build if successful if version tag is same 
         id: cache-build-save-ffmpeg
@@ -224,19 +224,19 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-ffmpeg-build-restore.outputs.cache-primary-key }}
-          path: "${{env.HOME_DIR}}/FFmpeg/build"
+          path: "${{env.HOME_DIR}}/ffmpeg/build"
 
       - name: Package binaries
         if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
         run: |
-          cd ${{env.HOME_DIR}}/FFmpeg
+          cd ${{env.HOME_DIR}}/ffmpeg
           7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip install
 
       - uses: actions/upload-artifact@v4
         if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
         with:
           name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-          path:  ${{env.HOME_DIR}}/FFmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
+          path:  ${{env.HOME_DIR}}/ffmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
 
       - name: Restore sources from cache 
         id: cache-qt-restore
@@ -302,7 +302,7 @@ jobs:
           $Env:Path
           mkdir qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/FFmpeg/install"
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/install"
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
@@ -318,7 +318,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DFFMPEG_DIR="${{env.HOME_DIR}}/FFmpeg/install"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/install"
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
