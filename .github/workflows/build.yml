@@ -185,7 +185,7 @@ jobs:
           cd FFmpeg
           mkdir build
           cd build
-          ../ffmpeg/configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug"
+          ../ffmpeg/configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug
    
       - name: Configure FFmpeg (Ubuntu)
         if: contains(matrix.os, 'ubuntu') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
@@ -194,7 +194,7 @@ jobs:
           cd FFmpeg
           mkdir build
           cd build
-          ../ffmpeg/configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug"
+          ../ffmpeg/configure --prefix=../install --disable-doc --enable-network  --disable-shared --enable-static --enable-nonfree --enable-libfdk-aac --enable-gpl --enable-version3 --disable-debug
    
       - name: Build FFmpeg (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
