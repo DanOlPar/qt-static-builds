@@ -182,7 +182,7 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cd ${{env.HOME_DIR}}
+          cd "${{env.HOME_DIR}}"
           cd ffmpeg
           mkdir build
           cd build
