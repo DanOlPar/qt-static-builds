@@ -176,6 +176,7 @@ jobs:
 
       - name: Configure ffmpeg (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+        shell: bash
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
