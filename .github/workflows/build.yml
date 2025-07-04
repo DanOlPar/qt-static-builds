@@ -204,13 +204,13 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/build
-          make install --parallel 4 -j4
+          make install -j4
   
       - name: Build ffmpeg (linux)
         if: contains(matrix.os, 'ubuntu') && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/build
-          make install --parallel 4 -j4
+          make install -j4
 
       #- name: Install ffmpeg 
       #  if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
