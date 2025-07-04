@@ -226,11 +226,13 @@ jobs:
           path: "${{env.HOME_DIR}}/FFmpeg/build"
 
       - name: Package binaries
+        if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
         run: |
           cd ${{env.HOME_DIR}}/FFmpeg
           7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip install
 
       - uses: actions/upload-artifact@v4
+        if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) 
         with:
           name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
           path:  ${{env.HOME_DIR}}/FFmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
