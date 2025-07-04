@@ -102,6 +102,7 @@ jobs:
   build:
     needs: setup
     env: 
+      FFMPEG_VERSION: "7.1"
       QT_VERSION: ${{needs.setup.outputs.qt_version}}
       VERSION_TAG: ${{needs.setup.outputs.version_tag}}
     outputs:
