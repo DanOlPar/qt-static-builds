@@ -143,6 +143,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         run: |
           echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "HOME_DIR_BASH_WIN=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
         
         
       - name: Set up MinGW (Windows)
@@ -182,7 +183,7 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cd "${{env.HOME_DIR}}"
+          cd ${{env.HOME_DIR_BASH_WIN}}
           cd ffmpeg
           mkdir build
           cd build
