@@ -213,6 +213,7 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/build
+          dir
           make install -j4
   
       - name: Build ffmpeg (linux)
