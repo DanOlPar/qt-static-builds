@@ -196,6 +196,7 @@ jobs:
           # already present: autoconf, go, openssl
 
       - name: Build ffmpeg (windows)
+        if: contains(matrix.os, 'windows')
         shell: bash
         env:
           CL: /MP # Build with multiple processes
@@ -206,6 +207,7 @@ jobs:
           /buildtools/scripts/build.sh 
 
       - name: Build ffmpeg (ubuntu & macos)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
           /buildtools/scripts/build.sh 
