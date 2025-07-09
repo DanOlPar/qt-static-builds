@@ -204,13 +204,13 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR_BASH}}/ffmpeg/
-          /buildtools/scripts/build.sh 
+          buildtools/scripts/build.sh 
 
       - name: Build ffmpeg (ubuntu & macos)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
-          /buildtools/scripts/build.sh 
+          buildtools/scripts/build.sh 
  
 
       - name: Save build if successful if version tag is same 
