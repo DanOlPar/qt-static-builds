@@ -185,7 +185,7 @@ jobs:
         if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
-          git clone  https://github.com/barry-ran/build-ffmpeg.git ffmpeg 
+          git clone pytgcalls/ffmpeg ffmpeg 
 
       - name: Install tools and dependencies (MacOS)
         if: contains(matrix.os, 'macos')
@@ -206,19 +206,19 @@ jobs:
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR_BASH}}/ffmpeg/
-          ./build.sh x64 mingw64
+          ./build.sh
 
       - name: Build ffmpeg (ubuntu)
         if: contains(matrix.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
-          chmod +x ./build.sh && ./build.sh x64
+          chmod +x ./build.sh && ./build.sh 
 
       - name: Build ffmpeg (macos)
         if: contains(matrix.os, 'macos') 
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
-          chmod +x ./build.sh && ./build.sh arm64
+          chmod +x ./build.sh && ./build.sh
  
 
       - name: Save build if successful if version tag is same 
@@ -233,7 +233,7 @@ jobs:
       - name: Package binaries
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg
-          7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip install
+          7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip artifacts
 
       - uses: actions/upload-artifact@v4
         with:
