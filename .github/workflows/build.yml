@@ -174,14 +174,6 @@ jobs:
           key:  ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
           path: "${{env.HOME_DIR}}/ffmpeg/"
 
-      - name: Checkout ffmpeg buildscript 
-        if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: wangyoucao577/ffmpeg-build
-          persist-credentials: false
-          fetch-depth: '0'
-          submodules: 'true'
 
       - name: Checkout ffmpeg buildscript 
         if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
