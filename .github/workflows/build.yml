@@ -181,7 +181,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           git clone  https://github.com/wangyoucao577/ffmpeg-build.git ffmpeg
           cd ffmpeg
-          git submodules init
+          git submodule update --init       
 
   
       - name: Build ffmpeg 
