@@ -181,12 +181,11 @@ jobs:
           path: "${{env.HOME_DIR}}/ffmpeg/"
 
 
-      - name: Checkout ffmpeg buildscript 
+      - name: Move ffmpeg buildscript 
         if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
-          cd ${{env.HOME_DIR}}
-          git clone https://github.com/pytgcalls/ffmpeg.git ffmpeg 
-
+          mv ffmpeg ${{env.HOME_DIR}}/ffmpeg
+          
       - name: Install tools and dependencies (MacOS)
         if: contains(matrix.os, 'macos')
         run: |
