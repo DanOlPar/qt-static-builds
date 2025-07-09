@@ -192,8 +192,7 @@ jobs:
       - name: Install tools and dependencies (MacOS)
         if: contains(matrix.os, 'macos')
         run: |
-          brew install tree bear automake meson yasm nasm autoconf go openssl
-          # already present: autoconf, go, openssl
+          brew install tree bear automake meson yasm nasm autoconf go openssl libtool
 
       - name: Build ffmpeg (windows)
         if: contains(matrix.os, 'windows')
