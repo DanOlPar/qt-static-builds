@@ -183,18 +183,21 @@ jobs:
           fetch-depth: '0'
           submodules: 'true'
 
-      - name: Move ffmpeg  buildscript
+      - name: Checkout ffmpeg buildscript 
         if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
-          mv ${{github.workspace}}/ffmpeg-build ${{env.HOME_DIR}}/ffmpeg
+          cd ${{env.HOME_DIR}}
+          git clone  https://github.com/wangyoucao577/ffmpeg-build.git ffmpeg
+          cd ffmpeg
+          git submodules init
+
   
       - name: Build ffmpeg 
-        if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+        #if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         #if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
           buildtools/scripts/build.sh 
-          git clone --branch n${{env.FFMPEG_VERSION}} https://git.ffmpeg.org/ffmpeg.git ffmpeg
  
 
       - name: Save build if successful if version tag is same 
