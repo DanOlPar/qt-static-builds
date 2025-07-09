@@ -197,13 +197,13 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
-          cd ${{env.HOME_DIR}}/ffmpeg/
+          cd ${{env.HOME_DIR_BASH}}/ffmpeg/
           /buildtools/scripts/build.sh 
 
       - name: Build ffmpeg (ubuntu & macos)
         run: |
-          cd ${{env.HOME_DIR_BASH}}/ffmpeg/
-          ./buildtools/scripts/build.sh 
+          cd ${{env.HOME_DIR}}/ffmpeg/
+          /buildtools/scripts/build.sh 
  
 
       - name: Save build if successful if version tag is same 
