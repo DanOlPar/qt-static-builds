@@ -10,6 +10,7 @@ on:
         type: choice
         options:
         - linux
+        - linux_arm
         - windows
         - macos
         - all
@@ -23,6 +24,7 @@ jobs:
   setup:
     env:
       BUILD_LINUX: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'linux') }}
+      BUILD_LINUX_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'linux_arm') }}
       BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
     runs-on: ubuntu-latest
@@ -55,13 +57,16 @@ jobs:
         run: |
           ARRAY=()
           if [ ${{ env.BUILD_LINUX }} = true  ]; then
-            ARRAY+=('ubuntu-latest')
+            ARRAY+=('ubuntu-24.04')
+          fi
+          if [ ${{ env.BUILD_LINUX_ARM }} = true  ]; then
+            ARRAY+=('ubuntu-24.04-arm')
           fi
           if [ ${{ env.BUILD_WINDOWS }} = true  ]; then
-            ARRAY+=('windows-latest')
+            ARRAY+=('windows-2025')
           fi
           if [ ${{ env.BUILD_MACOS }} = true  ]; then
-            ARRAY+=('macos-latest')
+            ARRAY+=('macos-15')
           fi
           json='runner='
           json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
