@@ -185,7 +185,7 @@ jobs:
         if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
-          git clone pytgcalls/ffmpeg ffmpeg 
+          git clone https://github.com/pytgcalls/ffmpeg.git ffmpeg 
 
       - name: Install tools and dependencies (MacOS)
         if: contains(matrix.os, 'macos')
