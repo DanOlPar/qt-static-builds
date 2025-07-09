@@ -138,12 +138,13 @@ jobs:
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
           echo "HOME_DIR=~" >> $GITHUB_ENV 
+          echo "HOME_DIR_BASH=~" >> $GITHUB_ENV 
     
       - name: Set home dir (Windows)
         if: contains(matrix.os, 'windows')
         run: |
           echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "HOME_DIR_BASH_WIN=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "HOME_DIR_BASH=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
         
         
       - name: Set up MinGW (Windows)
@@ -183,13 +184,26 @@ jobs:
           cd ffmpeg
           git submodule update --init       
 
-  
-      - name: Build ffmpeg 
-        #if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-        #if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+      - name: Install tools and dependencies (MacOS)
+        if: contains(matrix.os, 'macos')
+        run: |
+          brew install tree bear automake meson yasm nasm autoconf go openssl
+          # already present: autoconf, go, openssl
+
+      - name: Build ffmpeg (windows)
+        shell: bash
+        env:
+          CL: /MP # Build with multiple processes
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR}}/ffmpeg/
-          buildtools/scripts/build.sh 
+          /buildtools/scripts/build.sh 
+
+      - name: Build ffmpeg (ubuntu & macos)
+        run: |
+          cd ${{env.HOME_DIR_BASH}}/ffmpeg/
+          ./buildtools/scripts/build.sh 
  
 
       - name: Save build if successful if version tag is same 
