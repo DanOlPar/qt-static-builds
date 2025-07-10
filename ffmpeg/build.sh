@@ -57,13 +57,7 @@ for arch in "${arch_builds[@]}"; do
         --enable-hwaccel=mpeg4_vaapi \
         --enable-hwaccel=mpeg4_vdpau \
         --extra-ldflags=-pthread" \
-    --windows="--enable-ffnvcodec \
-        --enable-nvdec \
-        --enable-cuvid \
-        --enable-hwaccel=h264_nvdec \
-        --enable-hwaccel=hevc_nvdec \
-        --enable-hwaccel=mpeg2_nvdec \
-        --enable-hwaccel=mpeg4_nvdec" \
+    --windows="--target-os=win64" \
     --macos="--target-os=darwin \
         --enable-videotoolbox \
         --enable-hwaccel=h264_videotoolbox \
@@ -85,6 +79,13 @@ for arch in "${arch_builds[@]}"; do
         --disable-zlib \
         $(if [[ "$arch" == "x86" || "$arch" == "x86_64" ]]; then echo "--disable-asm"; fi) \
         $(if [[ "$arch" == "arm64-v8a" || "$arch" == "armv7-a" ]]; then echo "--enable-neon"; fi)" \
+    --linux-windows="--enable-ffnvcodec \
+        --enable-nvdec \
+        --enable-cuvid \
+        --enable-hwaccel=h264_nvdec \
+        --enable-hwaccel=hevc_nvdec \
+        --enable-hwaccel=mpeg2_nvdec \
+        --enable-hwaccel=mpeg4_nvdec" \
     --linux-macos-android="--extra-cflags='-fvisibility=hidden -ffunction-sections -fdata-sections -O2 -fomit-frame-pointer $(if is_macos; then echo -fno-common; fi)'" \
     --disable-programs --disable-doc \
     --disable-network --disable-everything \

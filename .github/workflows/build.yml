@@ -136,8 +136,9 @@ jobs:
           sudo apt-get install -y clang-18
           sudo apt-get install -y $(cat linux_packages.txt)
 
-      - name: Set up Ninja 
-        uses: seanmiddleditch/gha-setup-ninja@v5    
+      # NO LONGER NECESSARY
+      #- name: Set up Ninja 
+      #  uses: seanmiddleditch/gha-setup-ninja@v6    
 
       - name: Set home dir (Ubuntu & MacOS)
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
