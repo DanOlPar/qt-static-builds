@@ -166,12 +166,6 @@ jobs:
         with:
           name: PATH
           value: C:\ProgramData\mingw64\mingw32\bin;C:\ProgramData\mingw64\mingw64\bin;$env:PATH
-
-      - name: Set up Yasm (Windows)
-        id: install_yasm
-        if: contains(matrix.os, 'windows')
-        run: |
-          choco install yasm
         
 
       - name: Restore previous ffmpeg build if exists
@@ -193,9 +187,9 @@ jobs:
           brew install tree bear automake meson yasm nasm autoconf go openssl libtool
 
       - name: Install tools and dependencies (Windows)
-        if: contains(matrix.os, 'macos')
+        if: contains(matrix.os, 'windows')
         run: |
-          brew install tree bear automake meson yasm nasm autoconf go openssl libtool wget
+          choco install tree meson yasm nasm go openssl wget
 
       - name: Build ffmpeg (windows)
         if: contains(matrix.os, 'windows')
