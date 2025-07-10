@@ -186,14 +186,24 @@ jobs:
         run: |
           brew install tree bear automake meson yasm nasm autoconf go openssl libtool
 
+      - name: Setup MSYS2
+        if: contains(matrix.os, 'windows')
+        uses: msys2/setup-msys2@v2
+
       - name: Install tools and dependencies (Windows)
         if: contains(matrix.os, 'windows')
         run: |
           choco install tree meson yasm nasm go openssl wget
 
+      - name: Install tools and dependencies 2 (Windows)
+        if: contains(matrix.os, 'windows')
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm base-devel autotools
+
       - name: Build ffmpeg (windows)
         if: contains(matrix.os, 'windows')
-        shell: bash
+        shell: msys2 {0}
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
