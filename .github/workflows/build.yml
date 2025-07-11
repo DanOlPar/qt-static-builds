@@ -165,7 +165,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         with:
           msystem: ucrt64
-          install: mingw-w64-ucrt64-openssl
+          install: mingw-w64-ucrt-x86_64-openssl
       
       - name: add new MinGW to PATH environment variable
         if: contains(matrix.os, 'windows')
