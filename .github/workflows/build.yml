@@ -159,6 +159,13 @@ jobs:
         if: contains(matrix.os, 'windows')
         with:
           compiler: latest
+
+      - name: Set up MSYS (Windows)
+        uses: msys2/setup-msys2@v2
+        if: contains(matrix.os, 'windows')
+        with:
+          msystem: ucrt64
+          install: mingw-w64-ucrt64-openssl
       
       - name: add new MinGW to PATH environment variable
         if: contains(matrix.os, 'windows')
@@ -194,7 +201,8 @@ jobs:
       - name: Install tools and dependencies (Windows)
         if: contains(matrix.os, 'windows')
         shell: msys2 {0}
-        run: pacman -S --noconfirm base-devel git python autotools nasm
+        run: |
+          pacman -S --noconfirm base-devel git python autotools nasm
 
       - name: Build ffmpeg (windows)
         if: contains(matrix.os, 'windows')
