@@ -107,3 +107,4 @@ nasm
 gperf 
 autogen 
 autoconf-archive
+libnss3*
