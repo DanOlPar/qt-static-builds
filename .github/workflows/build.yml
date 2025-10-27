@@ -66,7 +66,7 @@ jobs:
             ARRAY+=('windows-2025')
           fi
           if [ ${{ env.BUILD_MACOS }} = true  ]; then
-            ARRAY+=('macos-15')
+            ARRAY+=('macos-26')
           fi
           json='runner='
           json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
