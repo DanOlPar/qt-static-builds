@@ -175,77 +175,77 @@ jobs:
           value: C:\ProgramData\mingw64\mingw32\bin;C:\ProgramData\mingw64\mingw64\bin;$env:PATH
         
 
-      - name: Restore previous ffmpeg build if exists
-        id: cache-ffmpeg-build-restore
-        uses: actions/cache/restore@v4
-        with:
-          key:  ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-          path: "${{env.HOME_DIR}}/ffmpeg/"
+      #- name: Restore previous ffmpeg build if exists
+      #  id: cache-ffmpeg-build-restore
+      #  uses: actions/cache/restore@v4
+      #  with:
+      #    key:  ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
+      #    path: "${{env.HOME_DIR}}/ffmpeg/"
 
 
-      - name: Move ffmpeg buildscript 
-        if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-        run: |
-          mv ffmpeg ${{env.HOME_DIR}}/ffmpeg
+      #- name: Move ffmpeg buildscript 
+      #  if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+      #  run: |
+      #    mv ffmpeg ${{env.HOME_DIR}}/ffmpeg
 
-      - name: Install tools and dependencies (MacOS)
-        if: contains(matrix.os, 'macos')
-        run: |
-          brew install tree bear automake meson yasm nasm autoconf go openssl libtool
+      #- name: Install tools and dependencies (MacOS)
+      #  if: contains(matrix.os, 'macos')
+      #  run: |
+      #    brew install tree bear automake meson yasm nasm autoconf go openssl libtool
 
-      - name: Install tools and dependencies (Windows)
-        if: contains(matrix.os, 'windows')
-        run: |
-          choco install tree meson yasm nasm go openssl wget
+      #- name: Install tools and dependencies (Windows)
+      #  if: contains(matrix.os, 'windows')
+      #  run: |
+      #    choco install tree meson yasm nasm go openssl wget
 
-      - name: Install tools and dependencies (Windows)
-        if: contains(matrix.os, 'windows')
-        shell: msys2 {0}
-        run: |
-          pacman -S --noconfirm base-devel git python autotools nasm
+      #- name: Install tools and dependencies (Windows)
+      #  if: contains(matrix.os, 'windows')
+      #  shell: msys2 {0}
+      #  run: |
+      #    pacman -S --noconfirm base-devel git python autotools nasm
 
-      - name: Build ffmpeg (windows)
-        if: contains(matrix.os, 'windows')
-        shell: msys2 {0}
-        env:
-          CL: /MP # Build with multiple processes
-          CC: ${{ steps.install_cc.outputs.cc }}
-          CXX: ${{ steps.install_cc.outputs.cxx }}
-        run: |
-          cd ${{env.HOME_DIR_BASH}}/ffmpeg/
-          ./build.sh
+      #- name: Build ffmpeg (windows)
+      #  if: contains(matrix.os, 'windows')
+      #  shell: msys2 {0}
+      #  env:
+      #    CL: /MP # Build with multiple processes
+      #    CC: ${{ steps.install_cc.outputs.cc }}
+      #    CXX: ${{ steps.install_cc.outputs.cxx }}
+      #  run: |
+      #    cd ${{env.HOME_DIR_BASH}}/ffmpeg/
+      #    ./build.sh
 
-      - name: Build ffmpeg (ubuntu)
-        if: contains(matrix.os, 'ubuntu')
-        run: |
-          cd ${{env.HOME_DIR}}/ffmpeg/
-          chmod +x ./build.sh && ./build.sh 
+      #- name: Build ffmpeg (ubuntu)
+      #  if: contains(matrix.os, 'ubuntu')
+      #  run: |
+      #    cd ${{env.HOME_DIR}}/ffmpeg/
+      #    chmod +x ./build.sh && ./build.sh 
 
-      - name: Build ffmpeg (macos)
-        if: contains(matrix.os, 'macos') 
-        run: |
-          cd ${{env.HOME_DIR}}/ffmpeg/
-          chmod +x ./build.sh && ./build.sh
+      #- name: Build ffmpeg (macos)
+      #  if: contains(matrix.os, 'macos') 
+      #  run: |
+      #    cd ${{env.HOME_DIR}}/ffmpeg/
+      #    chmod +x ./build.sh && ./build.sh
  
 
-      - name: Save build if successful if version tag is same 
-        id: cache-build-save-ffmpeg
-        if: success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-        #if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          key: ${{ steps.cache-ffmpeg-build-restore.outputs.cache-primary-key }}
-          path: "${{env.HOME_DIR}}/ffmpeg/"
+      #- name: Save build if successful if version tag is same 
+      #  id: cache-build-save-ffmpeg
+      #  if: success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+      #  #if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
+      #  uses: actions/cache/save@v4
+      #  with:
+      #    key: ${{ steps.cache-ffmpeg-build-restore.outputs.cache-primary-key }}
+      #    path: "${{env.HOME_DIR}}/ffmpeg/"
 
-      - name: Package binaries
-        run: |
-          cd ${{env.HOME_DIR}}/ffmpeg
-          7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip artifacts
+      #- name: Package binaries
+      #  run: |
+      #    cd ${{env.HOME_DIR}}/ffmpeg
+      #    7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip artifacts
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-          path:  ${{env.HOME_DIR}}/ffmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
+      #- uses: actions/upload-artifact@v4
+      #  with:
+      #    name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
+      #    path:  ${{env.HOME_DIR}}/ffmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
 
       - name: Restore sources from cache 
         id: cache-qt-restore
@@ -305,7 +305,9 @@ jobs:
           $Env:Path
           mkdir qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite"
+        #  ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
+
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
@@ -313,7 +315,8 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64""
+        #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
       - name: Configure Qt (linux)
         if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
@@ -321,7 +324,8 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18"
+        #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
