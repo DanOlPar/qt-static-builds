@@ -320,7 +320,7 @@ jobs:
 
 
       - name: Configure Qt (linux)
-        if: contains(matrix.os, 'ubuntu') #&& steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
@@ -347,7 +347,7 @@ jobs:
           cmake --build . --parallel 3 -j3
   
       - name: Build Qt (linux)
-        if: contains(matrix.os, 'ubuntu') #&& steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
@@ -363,7 +363,7 @@ jobs:
 
       - name: Save build if successful if version tag is same
         id: cache-build-save
-        if: success() #&& steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: success() && steps.cache-build-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-build-restore.outputs.cache-primary-key }}
