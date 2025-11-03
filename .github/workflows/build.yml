@@ -247,6 +247,23 @@ jobs:
       #    name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
       #    path:  ${{env.HOME_DIR}}/ffmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
 
+      - name: Free Disk Space (Ubuntu)
+        if: contains(matrix.os, 'ubuntu')
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+        
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+          
       - name: Restore sources from cache 
         id: cache-qt-restore
         uses: actions/cache/restore@v4
@@ -265,24 +282,6 @@ jobs:
       #    ls D:\a\install-qt-static\install-qt-static 
       #    move D:\qtsrc .
 
-         
-
-      - name: Free Disk Space (Ubuntu)
-        if: contains(matrix.os, 'ubuntu')
-        uses: jlumbroso/free-disk-space@main
-        with:
-          # this might remove tools that are actually needed,
-          # if set to "true" but frees about 6 GB
-          tool-cache: false
-        
-          # all of these default to true, but feel free to set to
-          # "false" if necessary for your workflow
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          docker-images: true
-          swap-storage: true
           
 
 
