@@ -14,6 +14,19 @@ on:
         - windows
         - macos
         - all
+
+      qt_version:
+        description: 'Qt Version'
+        required: true
+        default: '6.10.0'
+        type: choice
+        options:
+        - '6.10.0'
+        - '6.9.3'
+        - '6.8.4'
+        - '6.7.3'
+        - '6.6.3'
+        - '6.6.9'
   push:
     tags:
       - '*-*' # Only tags with build number
@@ -27,30 +40,13 @@ jobs:
       BUILD_LINUX_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'linux_arm') }}
       BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
+      QT_VERSION: ${{inputs.qt_version}}
     runs-on: ubuntu-latest
     outputs:
       activeos: ${{ steps.setup.outputs.runner }}
       qt_version: ${{ steps.setup.outputs.qt_version }}
-      version_tag: ${{ steps.setup.outputs.version_tag }}
     steps:
 
-      - uses: actions/checkout@v4
-
-      - name: Find Qt version
-        id: get_version
-        shell: python
-        run: |
-          import re
-          import os
-
-          with open("action.yml") as f:
-            action_content = f.read()
-          match = re.search(r"VERSION_TAG: v([\d.]+)", action_content)
-          match2 = re.search(r"VERSION_TAG: v([\d.-]+)", action_content)
-          print("Found Qt version:", match[1])
-          print("Version TAG:", match2[1])
-          with open(os.environ["GITHUB_ENV"], "a") as f:
-            f.write("QT_VERSION=" + match[1] + "\n" + "VERSION_TAG=" + match2[1])
 
       - name: Check os to build
         id: setup
@@ -73,7 +69,6 @@ jobs:
           echo $json
           echo $json >> $GITHUB_OUTPUT
           echo qt_version=$QT_VERSION >> $GITHUB_OUTPUT
-          echo version_tag=$VERSION_TAG >> $GITHUB_OUTPUT
 
       - name: Check if sources from cache are availabe
         id: cache-qt-check
@@ -109,10 +104,8 @@ jobs:
     env: 
       FFMPEG_VERSION: "7.1"
       QT_VERSION: ${{needs.setup.outputs.qt_version}}
-      VERSION_TAG: ${{needs.setup.outputs.version_tag}}
     outputs:
       qt_version: ${{needs.setup.outputs.qt_version}}
-      version_tag: ${{needs.setup.outputs.version_tag}}
     strategy:
       fail-fast: false
       matrix:
@@ -289,7 +282,7 @@ jobs:
         id: cache-build-restore
         uses: actions/cache/restore@v4
         with:
-          key:  ${{env.VERSION_TAG}}-${{matrix.os}}
+          key:  ${{env.QT_VERSION}}-${{matrix.os}}
           path: "${{env.HOME_DIR}}/qt_build"
 
 
@@ -383,7 +376,6 @@ jobs:
     needs: build
     env: 
       QT_VERSION: ${{needs.build.outputs.qt_version}}
-      VERSION_TAG: ${{needs.build.outputs.version_tag}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -394,16 +386,6 @@ jobs:
           merge-multiple: true
       - name: Shorthand tags
         id: tag
-        #OLD TAG WAS QT VERSION WITH DATETIME, NOW IS VERSION TAG "TAG=v${QT_VERSION}-$(date '+%Y%m%d_%H%M')"
-        #run: |
-        #  git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
-        #  git config --global user.name "github-actions[bot]"
-        #  TAGDEL=v${VERSION_TAG%.*}
-        #  TAG=v${VERSION_TAG}
-        #  git tag -d $TAGDEL || true
-        #  git tag $TAG -m "Published version $TAG"
-        #  git push -f origin $TAG
-        #  echo "tag=$TAG" >> $GITHUB_OUTPUT
 
         run: |
           git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
