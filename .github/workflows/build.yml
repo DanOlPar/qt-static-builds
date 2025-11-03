@@ -23,7 +23,7 @@ on:
         options:
         - '6.10.0'
         - '6.9.3'
-        - '6.8.4'
+        - '6.8.3'
         - '6.7.3'
         - '6.6.3'
         - '6.6.9'
@@ -130,19 +130,19 @@ jobs:
           sudo apt-get install -y $(cat linux_packages.txt)
 
 
-      - name: Set up MacOS dependencies
-        if: contains(matrix.os, 'macos')
-        run: |
-          brew install openssl@3.0 
+      #- name: Set up MacOS dependencies
+      #  if: contains(matrix.os, 'macos')
+      #  run: |
+      #    brew install openssl@3.0 
       #    brew install tree bear automake meson yasm nasm autoconf openssl@3.0 libtool
       # NO LONGER NECESSARY
       #- name: Set up Ninja 
       #  uses: seanmiddleditch/gha-setup-ninja@v6    
 
-      - name: Install tools and dependencies (Windows)
-        if: contains(matrix.os, 'windows')
-        run: |
-          choco install openssl.light --version=3.0.0
+      #- name: Install tools and dependencies (Windows)
+      #  if: contains(matrix.os, 'windows')
+      #  run: |
+      #    choco install openssl.light --version=3.0.0
         #  choco install tree meson yasm nasm go openssl wget
 
       - name: Set home dir (Ubuntu & MacOS)
@@ -309,7 +309,7 @@ jobs:
           $Env:Path
           mkdir -p qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DOPENSSL_USE_STATIC_LIBS=ON
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	
         #  ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
 
@@ -319,7 +319,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DOPENSSL_USE_STATIC_LIBS=ON 
         #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
 
