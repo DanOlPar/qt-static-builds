@@ -116,7 +116,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Linux libraries
+      - name: Set up Linux dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
@@ -129,6 +129,11 @@ jobs:
           sudo apt-get install -y clang-18
           sudo apt-get install -y $(cat linux_packages.txt)
 
+
+      - name: Set up MacOS dependencies
+        if: contains(matrix.os, 'macos')
+        run: |
+          brew install tree bear automake meson yasm nasm autoconf openssl libtool
       # NO LONGER NECESSARY
       #- name: Set up Ninja 
       #  uses: seanmiddleditch/gha-setup-ninja@v6    
