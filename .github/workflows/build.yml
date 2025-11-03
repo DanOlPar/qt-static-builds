@@ -133,7 +133,7 @@ jobs:
       - name: Set up MacOS dependencies
         if: contains(matrix.os, 'macos')
         run: |
-          brew install tree bear automake meson yasm nasm autoconf openssl libtool
+          brew install tree bear automake meson yasm nasm autoconf openssl@3.0 libtool
       # NO LONGER NECESSARY
       #- name: Set up Ninja 
       #  uses: seanmiddleditch/gha-setup-ninja@v6    
