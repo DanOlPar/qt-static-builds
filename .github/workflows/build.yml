@@ -133,10 +133,17 @@ jobs:
       - name: Set up MacOS dependencies
         if: contains(matrix.os, 'macos')
         run: |
-          brew install tree bear automake meson yasm nasm autoconf openssl@3.0 libtool
+          brew install openssl@3.0 
+      #    brew install tree bear automake meson yasm nasm autoconf openssl@3.0 libtool
       # NO LONGER NECESSARY
       #- name: Set up Ninja 
       #  uses: seanmiddleditch/gha-setup-ninja@v6    
+
+      - name: Install tools and dependencies (Windows)
+        if: contains(matrix.os, 'windows')
+        run: |
+          choco install openssl.light --version=3.0.0
+        #  choco install tree meson yasm nasm go openssl wget
 
       - name: Set home dir (Ubuntu & MacOS)
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
