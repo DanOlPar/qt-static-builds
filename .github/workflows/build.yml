@@ -315,16 +315,17 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64 -DOPENSSL_USE_STATIC_LIBS=ON"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
         #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
+
       - name: Configure Qt (linux)
-        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') #&& steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           mkdir qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg	-qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg	-qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
         #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
       - name: Build Qt (Windows)
@@ -362,7 +363,7 @@ jobs:
 
       - name: Save build if successful if version tag is same
         id: cache-build-save
-        if: success() && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: success() #&& steps.cache-build-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-build-restore.outputs.cache-primary-key }}
