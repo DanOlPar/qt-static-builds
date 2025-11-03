@@ -347,7 +347,7 @@ jobs:
           cmake --build . --parallel 3 -j3
   
       - name: Build Qt (linux)
-        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') #&& steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
