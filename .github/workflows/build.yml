@@ -327,7 +327,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
-          file="qtsrc/qtopcua/src/opcua/open62541/x509/CMakeLists.txt"
+          file="~/qtsrc/qtopcua/src/opcua/CMakeLists.txt"
           if grep -q "openssl_symbols.cpp" "$file"; then
             sed -i '/openssl_symbols\.cpp/s/^/# DISABLED to avoid symbol conflicts\n#/' "$file"
             echo "openssl_symbols.cpp disabled in $file to avoid conflicts"
