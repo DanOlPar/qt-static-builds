@@ -328,7 +328,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           ls qtsrc
-          file="/qtsrc/qtopcua/src/opcua/CMakeLists.txt"
+          file="qtsrc/qtopcua/src/opcua/CMakeLists.txt"
           if grep -q "openssl_symbols.cpp" "$file"; then
             sed -i '/openssl_symbols\.cpp/s/^/# DISABLED to avoid symbol conflicts\n#/' "$file"
             echo "openssl_symbols.cpp disabled in $file to avoid conflicts"
