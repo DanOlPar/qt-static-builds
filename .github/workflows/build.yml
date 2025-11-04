@@ -133,7 +133,7 @@ jobs:
 
   build:
     needs: [setup, get_sources]
-    env:
+
     strategy:
       fail-fast: false
       matrix:
