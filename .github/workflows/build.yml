@@ -16,9 +16,9 @@ on:
         - all
 
       qt_version:
-        description: 'Qt Version (choose one or all)'
+        description: 'Qt Version'
         required: true
-        default: '6.10.0'
+        default: 'all'
         type: choice
         options:
         - 'all'
@@ -354,3 +354,4 @@ jobs:
         with:
           files: release/*
           tag_name: ${{ steps.tag.outputs.tag }}
+
