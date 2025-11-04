@@ -98,7 +98,8 @@ jobs:
     steps:
     
       - name: Set Qt version env
-        run: echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
+        run: |
+           echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
 
       - name: Check if sources from cache are availabe
         id: cache-qt-check
