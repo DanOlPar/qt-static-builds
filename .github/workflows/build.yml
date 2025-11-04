@@ -68,8 +68,8 @@ jobs:
           # Build OS matrix JSON
           os_json='runner='
           os_json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
-          echo "$os_json"
-          echo "$os_json" >> $GITHUB_OUTPUT
+          echo $os_json
+          echo $os_json >> $GITHUB_OUTPUT
 
           # Build Qt versions matrix JSON
           V_IN="${{ env.QT_VERSION_IN }}"
@@ -80,8 +80,8 @@ jobs:
           fi
           qt_json='qt_versions='
           qt_json+=$(printf '%s\n' "${QT_LIST[@]}" | jq -R . | jq -s .)
-          echo "$qt_json"
-          echo "$qt_json" >> $GITHUB_OUTPUT
+          echo $qt_json
+          echo $qt_json >> $GITHUB_OUTPUT
 
 
 
