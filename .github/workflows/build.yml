@@ -16,20 +16,22 @@ on:
         - all
 
       qt_version:
-        description: 'Qt Version'
+        description: 'Qt Version (choose one or all)'
         required: true
         default: '6.10.0'
         type: choice
         options:
+        - 'all'
         - '6.10.0'
         - '6.9.3'
         - '6.8.3'
         - '6.7.3'
         - '6.6.3'
-        - '6.5.9'
+        - '6.5.7'
   push:
     tags:
       - '*-*' # Only tags with build number
+
 permissions:
   contents: write
 
@@ -40,14 +42,12 @@ jobs:
       BUILD_LINUX_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'linux_arm') }}
       BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
-      QT_VERSION: ${{inputs.qt_version}}
+      QT_VERSION_IN: ${{inputs.qt_version}}
     runs-on: ubuntu-latest
     outputs:
       activeos: ${{ steps.setup.outputs.runner }}
-      qt_version: ${{ steps.setup.outputs.qt_version }}
+      qt_versions: ${{ steps.setup.outputs.qt_versions }}
     steps:
-
-
       - name: Check os to build
         id: setup
         run: |
@@ -64,11 +64,41 @@ jobs:
           if [ ${{ env.BUILD_MACOS }} = true  ]; then
             ARRAY+=('macos-15')
           fi
-          json='runner='
-          json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
-          echo $json
-          echo $json >> $GITHUB_OUTPUT
-          echo qt_version=$QT_VERSION >> $GITHUB_OUTPUT
+
+          # Build OS matrix JSON
+          os_json='runner='
+          os_json+=$(printf '%s\n' "${ARRAY[@]}" | jq -R . | jq -s .)
+          echo "$os_json"
+          echo "$os_json" >> "$GITHUB_OUTPUT"
+
+          # Build Qt versions matrix JSON
+          V_IN="${{ env.QT_VERSION_IN }}"
+          if [ "$V_IN" = "all" ]; then
+            QT_LIST=('6.10.0' '6.9.3' '6.8.3' '6.7.3' '6.6.3' '6.5.9')
+          else
+            QT_LIST=("$V_IN")
+          fi
+          qt_json='qt_versions='
+          qt_json+=$(printf '%s\n' "${QT_LIST[@]}" | jq -R . | jq -s .)
+          echo "$qt_json"
+          echo "$qt_json" >> "$GITHUB_OUTPUT"
+
+
+
+
+  get_sources:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+      - name: Set Qt version env
+        run: echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
 
       - name: Check if sources from cache are availabe
         id: cache-qt-check
@@ -78,8 +108,8 @@ jobs:
           path: "~/qtsrc"
           enableCrossOsArchive: true
           lookup-only: true
-
-      - name: Clone Qt repo
+	
+      - name: Clone Qt repo (version-specific)
         if: steps.cache-qt-check.outputs.cache-hit != 'true'
         run: |
           cd ~
@@ -89,7 +119,7 @@ jobs:
           perl init-repository
           cd ~
   
-      - name: Save Qt Sources to cache if new
+      - name: Save Qt Sources to cache if new (version-specific)
         id: cache-qt-save
         if: always() &&  steps.cache-qt-check.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -97,25 +127,26 @@ jobs:
           key: ${{ steps.cache-qt-check.outputs.cache-primary-key }}
           path: "~/qtsrc"
           enableCrossOsArchive: true
-
+    
+    
 
   build:
-    needs: setup
-    env: 
-      FFMPEG_VERSION: "7.1"
-      QT_VERSION: ${{needs.setup.outputs.qt_version}}
-    outputs:
-      qt_version: ${{needs.setup.outputs.qt_version}}
+    needs: [setup, get_sources]
+    env:
     strategy:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.setup.outputs.activeos) }}
+        qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
 
     runs-on: ${{matrix.os}}
 
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Set Qt version env
+        run: echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
+
       - name: Set up Linux dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
@@ -129,22 +160,6 @@ jobs:
           sudo apt-get install -y clang-18
           sudo apt-get install -y $(cat linux_packages.txt)
 
-
-      #- name: Set up MacOS dependencies
-      #  if: contains(matrix.os, 'macos')
-      #  run: |
-      #    brew install openssl@3.0 
-      #    brew install tree bear automake meson yasm nasm autoconf openssl@3.0 libtool
-      # NO LONGER NECESSARY
-      #- name: Set up Ninja 
-      #  uses: seanmiddleditch/gha-setup-ninja@v6    
-
-      #- name: Install tools and dependencies (Windows)
-      #  if: contains(matrix.os, 'windows')
-      #  run: |
-      #    choco install openssl.light --version=3.0.0
-        #  choco install tree meson yasm nasm go openssl wget
-
       - name: Set home dir (Ubuntu & MacOS)
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: |
@@ -156,8 +171,7 @@ jobs:
         run: |
           echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "HOME_DIR_BASH=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
- 
-        
+
       - name: Set up MinGW (Windows)
         id: install_cc
         uses: rlalik/setup-cpp-compiler@master
@@ -180,78 +194,6 @@ jobs:
           value: C:\ProgramData\mingw64\mingw32\bin;C:\ProgramData\mingw64\mingw64\bin;$env:PATH
         
 
-      #- name: Restore previous ffmpeg build if exists
-      #  id: cache-ffmpeg-build-restore
-      #  uses: actions/cache/restore@v4
-      #  with:
-      #    key:  ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-      #    path: "${{env.HOME_DIR}}/ffmpeg/"
-
-
-      #- name: Move ffmpeg buildscript 
-      #  if: steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-      #  run: |
-      #    mv ffmpeg ${{env.HOME_DIR}}/ffmpeg
-
-      #- name: Install tools and dependencies (MacOS)
-      #  if: contains(matrix.os, 'macos')
-      #  run: |
-      #    brew install tree bear automake meson yasm nasm autoconf go openssl libtool
-
-      #- name: Install tools and dependencies (Windows)
-      #  if: contains(matrix.os, 'windows')
-      #  run: |
-      #    choco install tree meson yasm nasm go openssl wget
-
-      #- name: Install tools and dependencies (Windows)
-      #  if: contains(matrix.os, 'windows')
-      #  shell: msys2 {0}
-      #  run: |
-      #    pacman -S --noconfirm base-devel git python autotools nasm
-
-      #- name: Build ffmpeg (windows)
-      #  if: contains(matrix.os, 'windows')
-      #  shell: msys2 {0}
-      #  env:
-      #    CL: /MP # Build with multiple processes
-      #    CC: ${{ steps.install_cc.outputs.cc }}
-      #    CXX: ${{ steps.install_cc.outputs.cxx }}
-      #  run: |
-      #    cd ${{env.HOME_DIR_BASH}}/ffmpeg/
-      #    ./build.sh
-
-      #- name: Build ffmpeg (ubuntu)
-      #  if: contains(matrix.os, 'ubuntu')
-      #  run: |
-      #    cd ${{env.HOME_DIR}}/ffmpeg/
-      #    chmod +x ./build.sh && ./build.sh 
-
-      #- name: Build ffmpeg (macos)
-      #  if: contains(matrix.os, 'macos') 
-      #  run: |
-      #    cd ${{env.HOME_DIR}}/ffmpeg/
-      #    chmod +x ./build.sh && ./build.sh
- 
-
-      #- name: Save build if successful if version tag is same 
-      #  id: cache-build-save-ffmpeg
-      #  if: success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-      #  #if: (contains(matrix.os, 'windows') ||  contains(matrix.os, 'ubuntu')) && success() && steps.cache-ffmpeg-build-restore.outputs.cache-hit != 'true'
-      #  uses: actions/cache/save@v4
-      #  with:
-      #    key: ${{ steps.cache-ffmpeg-build-restore.outputs.cache-primary-key }}
-      #    path: "${{env.HOME_DIR}}/ffmpeg/"
-
-      #- name: Package binaries
-      #  run: |
-      #    cd ${{env.HOME_DIR}}/ffmpeg
-      #    7z a ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip artifacts
-
-      #- uses: actions/upload-artifact@v4
-      #  with:
-      #    name: ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}
-      #    path:  ${{env.HOME_DIR}}/ffmpeg/ffmpeg-${{env.FFMPEG_VERSION}}-${{matrix.os}}.zip
-
       - name: Free Disk Space (Ubuntu)
         if: contains(matrix.os, 'ubuntu')
         uses: jlumbroso/free-disk-space@main
@@ -268,15 +210,14 @@ jobs:
           large-packages: false
           docker-images: true
           swap-storage: true
-          
-      - name: Restore sources from cache 
+
+      - name: Restore sources from cache (version-specific)
         id: cache-qt-restore
         uses: actions/cache/restore@v4
         with:
           key:  ${{env.QT_VERSION}}_src
           path: "~/qtsrc"
           enableCrossOsArchive: true
-        #lookup-only: true
 
       #REMOVED, D: DISK IS FASTER
       #- name: Fix src location windows
@@ -287,10 +228,7 @@ jobs:
       #    ls D:\a\install-qt-static\install-qt-static 
       #    move D:\qtsrc .
 
-          
-
-
-      - name: Restore previous build for system if tag is same
+      - name: Restore previous build for system+version if tag is same
         id: cache-build-restore
         uses: actions/cache/restore@v4
         with:
@@ -309,9 +247,7 @@ jobs:
           $Env:Path
           mkdir -p qt_build
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	
-        #  ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
-
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
@@ -319,15 +255,12 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
-        #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
-
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
       - name: Fix QtOpcUa (linux)
         if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
-          ls qtsrc
           file="qtsrc/qtopcua/src/opcua/CMakeLists.txt"
           if grep -q "openssl_symbols.cpp" "$file"; then
             sed -i '/openssl_symbols\.cpp/s/^/# DISABLED to avoid symbol conflicts\n#/' "$file"
@@ -342,8 +275,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg	-qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
-        #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
@@ -393,14 +325,12 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: qt-static-${{matrix.os}}
+          name: qt-${{env.QT_VERSION}}-static-${{matrix.os}}
           path:  ${{env.HOME_DIR}}/qt-${{env.QT_VERSION}}-static-${{matrix.os}}.zip
 
   release:
     runs-on: ubuntu-latest
     needs: build
-    env: 
-      QT_VERSION: ${{needs.build.outputs.qt_version}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -411,18 +341,16 @@ jobs:
           merge-multiple: true
       - name: Shorthand tags
         id: tag
-
         run: |
           git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          TAG=v${QT_VERSION}-$(date '+%Y%m%d_%H%M')
+          TAG=qt-static-$(date '+%Y%m%d_%H%M')
           git tag $TAG -m "Published version $TAG"
           git push -f origin $TAG
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          
+
       - uses: softprops/action-gh-release@v2
         name: Do release
         with:
           files: release/*
           tag_name: ${{ steps.tag.outputs.tag }}
-
