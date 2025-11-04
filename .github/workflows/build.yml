@@ -323,19 +323,24 @@ jobs:
         #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
 
+      - name: Fix QtOpcUa (linux)
+        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        run: |
+          cd ${{env.HOME_DIR}}
+          file="qtsrc/qtopcua/src/opcua/open62541/x509/CMakeLists.txt"
+          if grep -q "openssl_symbols.cpp" "$file"; then
+            sed -i '/openssl_symbols\.cpp/s/^/# DISABLED to avoid symbol conflicts\n#/' "$file"
+            echo "openssl_symbols.cpp disabled in $file to avoid conflicts"
+          else
+            echo "openssl_symbols.cpp already disabled or missing"
+          fi
+          
       - name: Configure Qt (linux)
         if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
         run: |
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
           cd qt_build
-          file="~/qtsrc/qtopcua/src/plugins/opcua/open62541/x509/CMakeLists.txt"
-          if grep -q "openssl_symbols.cpp" "$file"; then
-            sed -i '/openssl_symbols\.cpp/s/^/# DISABLED to avoid symbol conflicts\n#/' "$file"
-            echo "✔️ openssl_symbols.cpp disabled in $file"
-          else
-            echo "ℹ️ openssl_symbols.cpp already disabled or missing"
-          fi
           ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg	-qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz	-- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
         #  ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -openssl-linked -sql-sqlite -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18  -DFFMPEG_DIR="${{env.HOME_DIR}}/ffmpeg/artifacts"
 
