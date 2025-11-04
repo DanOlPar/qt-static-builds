@@ -125,7 +125,7 @@ jobs:
   
       - name: Save Qt Sources to cache if new (version-specific)
         id: cache-qt-save
-        if: always() &&  steps.cache-qt-check.outputs.cache-hit != 'true'
+        if: success() &&  steps.cache-qt-check.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-qt-check.outputs.cache-primary-key }}
