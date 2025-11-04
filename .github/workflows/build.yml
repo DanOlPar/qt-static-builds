@@ -99,16 +99,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    
-      - name: Set Qt version env
-        run: |
-           echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
 
       - name: Check if sources from cache are availabe
         id: cache-qt-check
         uses: actions/cache/restore@v4
         with:
-          key:  ${{env.QT_VERSION}}_src
+          key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
           enableCrossOsArchive: true
           lookup-only: true
@@ -119,7 +115,7 @@ jobs:
           cd ~
           mkdir qtsrc
           cd qtsrc
-          git clone https://code.qt.io/qt/qt5.git . -b '${{env.QT_VERSION}}'
+          git clone https://code.qt.io/qt/qt5.git . -b '${{matrix.qt}}'
           perl init-repository
           cd ~
   
@@ -136,7 +132,9 @@ jobs:
 
   build:
     needs: [setup, get_sources]
-
+    concurrency:
+      group: build-${{matrix.qt}}-${{matrix.os}}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
@@ -147,16 +145,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set Qt version env (Ubuntu & MacOS)
-        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
-        run: |
-          echo "QT_VERSION=${{ matrix.qt }}" >> $GITHUB_ENV
-
-      - name: Set Qt version env (Windows)
-        if: contains(matrix.os, 'windows')
-        run: |
-          echo "QT_VERSION=${{ matrix.qt }}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Set up Linux dependencies
         if: contains(matrix.os, 'ubuntu')
@@ -226,7 +214,7 @@ jobs:
         id: cache-qt-restore
         uses: actions/cache/restore@v4
         with:
-          key:  ${{env.QT_VERSION}}_src
+          key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
           enableCrossOsArchive: true
 
@@ -243,7 +231,7 @@ jobs:
         id: cache-build-restore
         uses: actions/cache/restore@v4
         with:
-          key:  ${{env.QT_VERSION}}-${{matrix.os}}
+          key:  ${{matrix.qt}}-${{matrix.os}}
           path: "${{env.HOME_DIR}}/qt_build"
 
 
@@ -332,12 +320,12 @@ jobs:
       - name: Package binaries
         run: |
           cd ${{env.HOME_DIR}}
-          7z a qt-${{env.QT_VERSION}}-static-${{matrix.os}}.zip qt_static
+          7z a qt-${{matrix.qt}}-static-${{matrix.os}}.zip qt_static
 
       - uses: actions/upload-artifact@v4
         with:
-          name: qt-${{env.QT_VERSION}}-static-${{matrix.os}}
-          path:  ${{env.HOME_DIR}}/qt-${{env.QT_VERSION}}-static-${{matrix.os}}.zip
+          name: qt-${{matrix.qt}}-static-${{matrix.os}}
+          path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{matrix.os}}.zip
 
   release:
     runs-on: ubuntu-latest
