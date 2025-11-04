@@ -274,7 +274,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -feature-freetype -fontconfig -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
