@@ -74,7 +74,7 @@ jobs:
           # Build Qt versions matrix JSON
           V_IN="${{ env.QT_VERSION_IN }}"
           if [ "$V_IN" = "all" ]; then
-            QT_LIST=('6.10.0' '6.9.3' '6.8.3' '6.7.3' '6.6.3' '6.5.9')
+            QT_LIST=('6.10.0' '6.9.3' '6.8.3' '6.7.3' '6.6.3' '6.5.7')
           else
             QT_LIST=("$V_IN")
           fi
