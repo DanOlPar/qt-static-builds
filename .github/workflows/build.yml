@@ -326,7 +326,7 @@ jobs:
 
       - name: Save build if successful if version tag is same
         id: cache-build-save
-        if: success() && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: success() 
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-build-restore.outputs.cache-primary-key }}
