@@ -24,9 +24,6 @@ g++
 make
 unzip
 zip
-*fontconfig*
-libfontconfig*dev
-libfontconfig1-dev
 python3-html5lib
 nodejs
 mesa-common-dev
@@ -35,7 +32,11 @@ libglu1-mesa-dev
 llvm-dev
 llvm-runtime
 libclang-dev
+libfontconfig1 
+libfontconfig1-dev
+libfreetype6
 libfreetype-dev
+libfreetype6-dev
 libx11-dev
 libx11-xcb-dev
 libxcb-cursor-dev
@@ -59,7 +60,6 @@ libxi-dev
 libxkbcommon-dev
 libxkbcommon-x11-dev
 libxrender-dev
-libfreetype6-dev
 libxcb-sync0-dev
 freeglut3-dev
 libglew-dev
