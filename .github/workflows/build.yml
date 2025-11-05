@@ -95,6 +95,9 @@ jobs:
       fail-fast: false
       matrix:
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
+    concurrency:
+      group: src-${{ matrix.qt }}
+      cancel-in-progress: false
 
     runs-on: ubuntu-latest
 
@@ -140,7 +143,8 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.setup.outputs.activeos) }}
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
-
+    env: 
+      COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz"
     runs-on: ${{matrix.os}}
 
     steps:
@@ -250,14 +254,14 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static ${{ env.COMMON_FLAGS }}" 
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') 
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
       - name: Fix QtOpcUa (linux)
         if: contains(matrix.os, 'ubuntu') 
@@ -276,7 +280,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} -openssl-linked -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') 
@@ -324,10 +328,26 @@ jobs:
           cd ${{env.HOME_DIR}}
           7z a qt-${{matrix.qt}}-static-${{matrix.os}}.zip qt_static
 
+      - name: Copy config & CMakeCache
+        run: |
+          cp ${{ env.HOME_DIR }}/qt_build/CMakeCache.txt ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{matrix.os}}.txt
+          cp ${{ env.HOME_DIR }}/qt_build/config.summary ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{matrix.os}}.summary
+
       - uses: actions/upload-artifact@v4
         with:
           name: qt-${{matrix.qt}}-static-${{matrix.os}}
           path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{matrix.os}}.zip
+
+        # salva i file di config
+      - name: Upload configure summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.qt }}-${{ matrix.os }}
+          path: |
+            ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{matrix.os}}.txt
+            ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{matrix.os}}.summary
+          if-no-files-found: ignore
 
   release:
     runs-on: ubuntu-latest
