@@ -31,9 +31,6 @@ on:
  #       - '6.6.3'
         #disabilito anche 6.5.3
  #       - '6.5.3'
-  push:
-    tags:
-      - '*-*' # Only tags with build number
 
 permissions:
   contents: write
