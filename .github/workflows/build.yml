@@ -141,7 +141,11 @@ jobs:
         os: ${{ fromJSON(needs.setup.outputs.activeos) }}
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
     env:
-      COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz -system-freetype -fontconfig"
+      COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz"
+      LINUX_FLAGS: "-system-freetype -fontconfig -openssl-linked"
+      WINDOWS_FLAGS: "-qt-freetype"
+      MACOS_FLAGS: "-qt-freetype"
+
     runs-on: ${{matrix.os}}
 
     steps:
@@ -260,14 +264,14 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static ${{ env.COMMON_FLAGS }}" 
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static ${{ env.COMMON_FLAGS }} ${{ENV.WINDOWS_FLAGS}}" 
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') 
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.MACOS_FLAGS}} -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
       - name: Fix QtOpcUa (linux)
         if: contains(matrix.os, 'ubuntu') 
@@ -286,7 +290,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} -openssl-linked -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.LINUX_FLAGS}} -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows') 
