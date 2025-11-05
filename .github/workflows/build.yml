@@ -236,7 +236,7 @@ jobs:
 
 
       - name: Configure Qt (Windows)
-        if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'windows') 
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
@@ -249,7 +249,7 @@ jobs:
           ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz
 
       - name: Configure Qt (macOS)
-        if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'macos') 
         run: |
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
@@ -257,7 +257,7 @@ jobs:
           ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
       - name: Fix QtOpcUa (linux)
-        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') 
         run: |
           cd ${{env.HOME_DIR}}
           file="qtsrc/qtopcua/src/opcua/CMakeLists.txt"
@@ -269,7 +269,7 @@ jobs:
           fi
           
       - name: Configure Qt (linux)
-        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') 
         run: |
           cd ${{env.HOME_DIR}}
           mkdir -p qt_build
@@ -277,7 +277,7 @@ jobs:
           ~/qtsrc/configure -static -release -prefix "../qt_static" -no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -openssl-linked -qt-libjpeg -qt-libpng -qt-zlib -qt-freetype -qt-pcre -qt-harfbuzz -feature-freetype -fontconfig -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
       - name: Build Qt (Windows)
-        if: contains(matrix.os, 'windows') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'windows') 
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
@@ -288,14 +288,14 @@ jobs:
           cmake --build . --parallel 4 -j4
   
       - name: Build Qt (macOS)
-        if: contains(matrix.os, 'macos') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'macos') 
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           cmake --build . --parallel 3 -j3
   
       - name: Build Qt (linux)
-        if: contains(matrix.os, 'ubuntu') && steps.cache-build-restore.outputs.cache-hit != 'true'
+        if: contains(matrix.os, 'ubuntu') 
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
@@ -335,11 +335,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/download-artifact@v4
         with:
           path: release
           merge-multiple: true
       - name: Shorthand tags
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         id: tag
         run: |
           git config --global user.email "27856297+dependabot-preview[bot]@users.noreply.github.com"
