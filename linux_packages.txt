@@ -24,6 +24,7 @@ g++
 make
 unzip
 zip
+libfontconfig*dev
 libfontconfig1-dev
 python3-html5lib
 nodejs
