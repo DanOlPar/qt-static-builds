@@ -143,7 +143,7 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.setup.outputs.activeos) }}
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
-    env: 
+    env:
       COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre -qt-harfbuzz"
     runs-on: ${{matrix.os}}
 
@@ -163,17 +163,26 @@ jobs:
           sudo apt-get install -y clang-18
           sudo apt-get install -y $(cat linux_packages.txt)
 
-      - name: Set home dir (Ubuntu & MacOS)
-        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
+      - name: Set vars (Ubuntu)
+        if: contains(matrix.os, 'ubuntu')
         run: |
           echo "HOME_DIR=~" >> $GITHUB_ENV 
           echo "HOME_DIR_BASH=~" >> $GITHUB_ENV 
+          echo "OS_NAME=${{runner.os}}-${{runner.arch}}" >> $GITHUB_ENV 
+
+      - name: Set vars (MacOS)
+        if: contains(matrix.os, 'macos')
+        run: |
+          echo "HOME_DIR=~" >> $GITHUB_ENV 
+          echo "HOME_DIR_BASH=~" >> $GITHUB_ENV 
+          echo "OS_NAME=${{runner.os}}-${{runner.arch}}" >> $GITHUB_ENV 
     
-      - name: Set home dir (Windows)
+      - name: Set vars (Windows)
         if: contains(matrix.os, 'windows')
         run: |
           echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "HOME_DIR_BASH=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "OS_NAME=${{runner.os}}-${{runner.arch}}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Set up MinGW (Windows)
         id: install_cc
@@ -326,27 +335,27 @@ jobs:
       - name: Package binaries
         run: |
           cd ${{env.HOME_DIR}}
-          7z a qt-${{matrix.qt}}-static-${{matrix.os}}.zip qt_static
+          7z a qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip qt_static
 
       - name: Copy config & CMakeCache
         run: |
-          cp ${{ env.HOME_DIR }}/qt_build/CMakeCache.txt ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{matrix.os}}.txt
-          cp ${{ env.HOME_DIR }}/qt_build/config.summary ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{matrix.os}}.summary
+          cp ${{ env.HOME_DIR }}/qt_build/CMakeCache.txt ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{env.OS_NAME}}.txt
+          cp ${{ env.HOME_DIR }}/qt_build/config.summary ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{env.OS_NAME}}.summary
 
       - uses: actions/upload-artifact@v4
         with:
-          name: qt-${{matrix.qt}}-static-${{matrix.os}}
-          path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{matrix.os}}.zip
+          name: qt-${{matrix.qt}}-static-${{env.OS_NAME}}
+          path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip
 
         # salva i file di config
       - name: Upload configure summaries
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.qt }}-${{ matrix.os }}
+          name: logs-${{ matrix.qt }}-${{env.OS_NAME}}
           path: |
-            ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{matrix.os}}.txt
-            ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{matrix.os}}.summary
+            ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{env.OS_NAME}}.txt
+            ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{env.OS_NAME}}.summary
           if-no-files-found: ignore
 
   release:
