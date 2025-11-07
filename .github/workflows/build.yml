@@ -333,7 +333,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           cd qt_build
           # -static-runtime per /MT; Ninja come generator
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja"
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DFEATURE_pdb=OFF
 
       - name: Configure Qt (Windows ARM64 MSVC)
         if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc'
@@ -342,7 +342,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DFEATURE_pdb=OFF -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
 
       # ---------- BUILD ----------
       - name: Build Qt (Linux)
