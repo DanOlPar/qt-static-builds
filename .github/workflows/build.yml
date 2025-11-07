@@ -27,11 +27,20 @@ on:
         - '6.9.3'
         - '6.8.3'
         - '6.7.3'
-
         #6.6.3 non compila per una issue con libzstd_static
  #       - '6.6.3'
         #disabilito anche 6.5.3
  #       - '6.5.3'
+
+      cache_sources:
+        description: 'Cache sources'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+
 
 permissions:
   contents: write
@@ -45,6 +54,7 @@ jobs:
       BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
       BUILD_WINDOWS_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows_arm') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
+      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
       QT_VERSION_IN: ${{inputs.qt_version}}
     runs-on: ubuntu-latest
     outputs:
@@ -103,12 +113,14 @@ jobs:
       cancel-in-progress: false
 
     runs-on: ubuntu-latest
-
+    env:
+      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
     steps:
 
       - name: Check if sources from cache are availabe
         id: cache-qt-check
         uses: actions/cache/restore@v4
+        if: env.CACHE_SOURCES
         with:
           key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
@@ -116,7 +128,7 @@ jobs:
           lookup-only: true
           
       - name: Clone Qt repo (version-specific)
-        if: steps.cache-qt-check.outputs.cache-hit != 'true'
+        if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES
         run: |
           cd ~
           mkdir qtsrc
@@ -127,7 +139,7 @@ jobs:
   
       - name: Save Qt Sources to cache if new (version-specific)
         id: cache-qt-save
-        if: success() &&  steps.cache-qt-check.outputs.cache-hit != 'true'
+        if: success() &&  steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-qt-check.outputs.cache-primary-key }}
@@ -151,6 +163,7 @@ jobs:
       LINUX_FLAGS: "-system-freetype -fontconfig -openssl-linked"
       WINDOWS_FLAGS: "-qt-harfbuzz -qt-freetype"
       MACOS_FLAGS: "-qt-harfbuzz -qt-freetype"
+      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
 
     runs-on: ${{matrix.os}}
 
@@ -236,10 +249,23 @@ jobs:
       - name: Restore sources from cache (version-specific)
         id: cache-qt-restore
         uses: actions/cache/restore@v4
+        if: env.CACHE_SOURCES
         with:
           key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
           enableCrossOsArchive: true
+
+
+      - name: Clone Qt repo (version-specific) if not found or cache disabled
+        if: steps.cache-qt-restore.outputs.cache-hit != 'true' || !env.CACHE_SOURCES
+        run: |
+          cd ~
+          mkdir qtsrc
+          cd qtsrc
+          git clone https://code.qt.io/qt/qt5.git . -b '${{matrix.qt}}'
+          perl init-repository
+          cd ~
+  
 
       #REMOVED, D: DISK IS FASTER
       #- name: Fix src location windows
