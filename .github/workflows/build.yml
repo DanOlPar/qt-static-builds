@@ -54,7 +54,6 @@ jobs:
       BUILD_WINDOWS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows') }}
       BUILD_WINDOWS_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows_arm') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
-      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
       QT_VERSION_IN: ${{inputs.qt_version}}
     runs-on: ubuntu-latest
     outputs:
@@ -114,7 +113,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
+      CACHE_SOURCES:  ${{(inputs.cache_sources) }}
     steps:
 
       - name: Check if sources from cache are availabe
@@ -128,7 +127,7 @@ jobs:
           lookup-only: true
           
       - name: Clone Qt repo (version-specific)
-        if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES
+        if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
         run: |
           cd ~
           mkdir qtsrc
@@ -139,7 +138,7 @@ jobs:
   
       - name: Save Qt Sources to cache if new (version-specific)
         id: cache-qt-save
-        if: success() &&  steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES
+        if: success() &&  steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
         uses: actions/cache/save@v4
         with:
           key: ${{ steps.cache-qt-check.outputs.cache-primary-key }}
@@ -163,7 +162,7 @@ jobs:
       LINUX_FLAGS: "-system-freetype -fontconfig -openssl-linked"
       WINDOWS_FLAGS: "-qt-harfbuzz -qt-freetype"
       MACOS_FLAGS: "-qt-harfbuzz -qt-freetype"
-      CACHE_SOURCES:  ${{(inputs.cache_sources == 'yes') }}
+      CACHE_SOURCES:  ${{(inputs.cache_sources) }}
 
     runs-on: ${{matrix.os}}
 
@@ -249,7 +248,7 @@ jobs:
       - name: Restore sources from cache (version-specific)
         id: cache-qt-restore
         uses: actions/cache/restore@v4
-        if: env.CACHE_SOURCES
+        if: env.CACHE_SOURCES == 'yes'
         with:
           key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
@@ -257,7 +256,7 @@ jobs:
 
 
       - name: Clone Qt repo (version-specific) if not found or cache disabled
-        if: steps.cache-qt-restore.outputs.cache-hit != 'true' || !env.CACHE_SOURCES
+        if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
         run: |
           cd ~
           mkdir qtsrc
