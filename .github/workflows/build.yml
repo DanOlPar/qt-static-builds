@@ -213,12 +213,12 @@ jobs:
         with:
           compiler: latest
 
-      - name: Set up MSYS (Windows)
-        uses: msys2/setup-msys2@v2
-        if: contains(matrix.os, 'windows')
-        with:
-          msystem: ucrt64
-          install: mingw-w64-ucrt-x86_64-openssl
+      #- name: Set up MSYS (Windows)
+      #  uses: msys2/setup-msys2@v2
+      #  if: contains(matrix.os, 'windows')
+      #  with:
+      #    msystem: ucrt64
+      #    install: mingw-w64-ucrt-x86_64-openssl
       
       - name: add new MinGW to PATH environment variable
         if: contains(matrix.os, 'windows')
@@ -298,7 +298,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.WINDOWS_FLAGS}}" 
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.WINDOWS_FLAGS}}
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') 
