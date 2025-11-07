@@ -90,7 +90,6 @@ jobs:
             targets_json=$(printf '%s\n' "${TARGETS[@]}" | jq -s -c .)
           fi
           echo "targets=$targets_json" >> "$GITHUB_OUTPUT"
-          echo "DEBUG targets -> $targets_json"
 
           # Qt versions
           V_IN="${{ env.QT_VERSION_IN }}"
@@ -159,6 +158,9 @@ jobs:
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
     env:
       COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre"
+      # NOTA: Su linux è necessario usare OBBLIGATORIAMENTE freetype di sistema (system-freetype), 
+      # altrimenti non è possibile utilizzare fontconfig e di conseguenza non si possono utilizzare font di sistema ma solo font embeddati nelle app. 
+      # Inoltre, harfbuzz deve essere anche lui a sistema altrimenti se importato su qt-harfbuzz forza qt-freetype 
       LINUX_FLAGS: "-system-freetype -fontconfig -openssl-linked"
       WINDOWS_FLAGS: "-qt-harfbuzz -qt-freetype"
       MACOS_FLAGS: "-qt-harfbuzz -qt-freetype"
@@ -200,7 +202,7 @@ jobs:
           echo "HOME_DIR_BASH=~" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "OS_NAME=${{runner.os}}-${{runner.arch}}-${{ matrix.target.toolchain }}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      # ---------- DEPS LINUX ----------
+      # ---------- DEPENDENCIES LINUX ----------
       - name: Set up Linux dependencies
         if: contains(matrix.target.os, 'ubuntu')
         run: |
@@ -210,7 +212,7 @@ jobs:
           sudo apt-get install -y $(cat linux_packages.txt)
 
       # ---------- WINDOWS TOOLCHAINS ----------
-      # MinGW setup
+      # MinGW setup (x64 ONLY)
       - name: Set up MinGW (Windows mingw)
         id: install_cc
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64')
@@ -233,6 +235,7 @@ jobs:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
 
       # ---------- DISK SPACE LINUX ----------
+      # Necessario altrimenti ubuntu non ha abbastanza spazio per buildare
       - name: Free Disk Space (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
         uses: jlumbroso/free-disk-space@main
@@ -270,6 +273,7 @@ jobs:
           perl init-repository
 
       # ---------- BUILD CACHE ----------
+      # Se possibile tengo build precedente per alleggerire il carico/ridurre il tempo di build
       - name: Restore previous build for system+version+toolchain
         id: cache-build-restore
         uses: actions/cache/restore@v4
@@ -284,6 +288,7 @@ jobs:
           mkdir -p qt_build
 
       # ---------- CONFIGURE ----------
+      # Fix necessario altrimenti sia opcua che qtnetwork definiscono i simboli di openssl andando in conflitto e non compila ncazzo se includi opcua in un'app
       - name: Fix QtOpcUa (linux)
         if: contains(matrix.target.os, 'ubuntu') 
         run: |
@@ -395,10 +400,9 @@ jobs:
           cd ${{env.HOME_DIR}}
           7z a qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip qt_static
 
-      - name: Copy config & CMakeCache
+      - name: Copy configiguration summary
         shell: bash
         run: |
-          cp ${{ env.HOME_DIR_BASH }}/qt_build/CMakeCache.txt ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-CMakeCache.txt
           cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
 
       - name: Upload build
@@ -407,14 +411,13 @@ jobs:
           name: qt-${{matrix.qt}}-static-${{env.OS_NAME}}
           path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip
 
-        # salva i file di config
-      - name: Upload configure summaries
+        # salva il file di configuration in modo da avere un'idea di cosa è presente nella build
+      - name: Upload configuration summaries
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.qt }}-${{env.OS_NAME}}
           path: |
-            ${{env.HOME_DIR}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-CMakeCache.txt
             ${{env.HOME_DIR}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
           if-no-files-found: ignore
 
@@ -423,7 +426,7 @@ jobs:
     needs: build
     env: 
       QT_VERSION: ${{inputs.qt_version}}
-    if: always()
+    if: always() && !cancelled()
     steps:
       - uses: actions/checkout@v4
         with:
