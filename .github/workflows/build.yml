@@ -119,7 +119,7 @@ jobs:
       - name: Check if sources from cache are availabe
         id: cache-qt-check
         uses: actions/cache/restore@v4
-        if: env.CACHE_SOURCES
+        if: env.CACHE_SOURCES == 'yes'
         with:
           key:  ${{matrix.qt}}_src
           path: "~/qtsrc"
