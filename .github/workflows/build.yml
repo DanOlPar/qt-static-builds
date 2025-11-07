@@ -233,6 +233,31 @@ jobs:
         with:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
 
+      - name: Install DIA SDK (ARM64)
+        if: contains(matrix.target.os, 'windows') && contains(runner.arch, 'ARM64') && matrix.target.toolchain == 'msvc'
+        shell: powershell
+        run: |
+          Write-Host "🔧 Locating Visual Studio Installer..."
+          $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+          if (-Not (Test-Path $vsInstaller)) {
+            Write-Error "Visual Studio Installer not found at $vsInstaller"
+            exit 1
+          }
+        
+          Write-Host "🧩 Modifying VS installation to include DIA SDK (Component ID: Microsoft.VisualStudio.Component.DiaSdk)"
+          Start-Process -FilePath $vsInstaller -ArgumentList `
+            "modify", "--installPath", "C:\Program Files\Microsoft Visual Studio\2022\Community", `
+            "--add", "Microsoft.VisualStudio.Component.DiaSdk", "--quiet", "--norestart", "--wait" -Wait
+        
+          Write-Host "✅ DIA SDK installation complete."
+        
+          $diaLib = "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\diaguids.lib"
+          if (Test-Path $diaLib) {
+            Write-Host "✅ DIA SDK ARM64 library found at: $diaLib"
+          } else {
+            Write-Warning "⚠️ DIA SDK not found after install — check Visual Studio path or workload setup."
+          }
+
       # ---------- DISK SPACE LINUX ----------
       # Necessario altrimenti ubuntu non ha abbastanza spazio per buildare
       - name: Free Disk Space (Ubuntu)
