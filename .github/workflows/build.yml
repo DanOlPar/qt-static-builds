@@ -199,17 +199,25 @@ jobs:
           echo "HOME_DIR_BASH=~" >> $GITHUB_ENV 
           echo "OS_NAME=${{runner.os}}-${{runner.arch}}" >> $GITHUB_ENV 
     
-      - name: Set vars (Windows)
-        if: contains(matrix.os, 'windows')
+        #D: DISK IS FASTER ON WINDOWS
+      - name: Set vars (Windows x86)
+        if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         run: |
           echo "HOME_DIR=D:\" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "HOME_DIR_BASH=D:/" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "OS_NAME=${{runner.os}}-${{runner.arch}}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Set vars (Windows ARM)
+        if: contains(matrix.os, 'windows') && contains(runner.arch, 'ARM64')
+        run: |
+          echo "HOME_DIR=~" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "HOME_DIR_BASH=~" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "OS_NAME=${{runner.os}}-${{runner.arch}}" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Set up MinGW (Windows)
         id: install_cc
         uses: rlalik/setup-cpp-compiler@master
-        if: contains(matrix.os, 'windows')
+        if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         with:
           compiler: latest
 
@@ -221,7 +229,7 @@ jobs:
       #    install: mingw-w64-ucrt-x86_64-openssl
       
       - name: add new MinGW to PATH environment variable
-        if: contains(matrix.os, 'windows')
+        if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         uses: myci-actions/export-env-var-powershell@1
         with:
           name: PATH
@@ -382,11 +390,13 @@ jobs:
           7z a qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip qt_static
 
       - name: Copy config & CMakeCache
+        shell: bash
         run: |
-          cp ${{ env.HOME_DIR }}/qt_build/CMakeCache.txt ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{env.OS_NAME}}.txt
-          cp ${{ env.HOME_DIR }}/qt_build/config.summary ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{env.OS_NAME}}.summary
+          cp ${{ env.HOME_DIR_BASH }}/qt_build/CMakeCache.txt ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-CMakeCache.txt
+          cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload build
+        uses: actions/upload-artifact@v4
         with:
           name: qt-${{matrix.qt}}-static-${{env.OS_NAME}}
           path:  ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip
@@ -398,8 +408,8 @@ jobs:
         with:
           name: logs-${{ matrix.qt }}-${{env.OS_NAME}}
           path: |
-            ${{env.HOME_DIR}}/CMakeCache-${{matrix.qt}}-${{env.OS_NAME}}.txt
-            ${{env.HOME_DIR}}/config-${{matrix.qt}}-${{env.OS_NAME}}.summary
+            ${{env.HOME_DIR}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-CMakeCache.txt
+            ${{env.HOME_DIR}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
           if-no-files-found: ignore
 
   release:
