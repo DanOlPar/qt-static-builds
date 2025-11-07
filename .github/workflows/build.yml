@@ -326,7 +326,7 @@ jobs:
           ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja"
 
       - name: Configure Qt (Windows MSVC)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
         env:
           CL: /MP
         run: |
@@ -342,7 +342,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -D CMAKE_SYSTEM_PROCESSOR=ARM64
+          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
 
       # ---------- BUILD ----------
       - name: Build Qt (Linux)
