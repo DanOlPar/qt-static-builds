@@ -257,12 +257,13 @@ jobs:
 
       - name: Clone Qt repo (version-specific) if not found or cache disabled
         if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
+        shell: bash
         run: |
-          cd ${{env.HOME_DIR}}
+          cd ${{env.HOME_DIR_BASH}}
           mkdir qtsrc
           cd qtsrc
           git clone https://code.qt.io/qt/qt5.git . -b '${{matrix.qt}}'
-          perl init-repository.pl
+          perl init-repository
   
 
       #REMOVED, D: DISK IS FASTER
