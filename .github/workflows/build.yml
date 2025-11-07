@@ -214,19 +214,16 @@ jobs:
           echo "HOME_DIR_BASH=~" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "OS_NAME=${{runner.os}}-${{runner.arch}}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Set up MinGW (Windows)
+      - name: Set up MinGW (Windows x86)
         id: install_cc
         uses: rlalik/setup-cpp-compiler@master
         if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         with:
           compiler: latest
 
-      #- name: Set up MSYS (Windows)
-      #  uses: msys2/setup-msys2@v2
-      #  if: contains(matrix.os, 'windows')
-      #  with:
-      #    msystem: ucrt64
-      #    install: mingw-w64-ucrt-x86_64-openssl
+      - name: Set up MSYS (Windows ARM)
+        uses: msys2/setup-msys2@v2
+        if: contains(matrix.os, 'windows') && contains(runner.arch, 'ARM64')
       
       - name: add new MinGW to PATH environment variable
         if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
@@ -297,8 +294,8 @@ jobs:
           mkdir -p qt_build
 
 
-      - name: Configure Qt (Windows)
-        if: contains(matrix.os, 'windows') 
+      - name: Configure Qt (Windows X86)
+        if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
@@ -307,6 +304,16 @@ jobs:
           cd ${{env.HOME_DIR}}
           cd qt_build
           ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.WINDOWS_FLAGS}}
+
+      - name: Configure Qt (Windows ARM)
+        if: contains(matrix.os, 'windows') && contains(runner.arch, 'ARM64')
+        shell: msys2 {0}
+        env:
+          CL: /MP # Build with multiple processes
+        run: |
+          cd ${{env.HOME_DIR_BASH}}
+          cd qt_build
+          ..\qtsrc\configure -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.WINDOWS_FLAGS}}
 
       - name: Configure Qt (macOS)
         if: contains(matrix.os, 'macos') 
@@ -334,14 +341,24 @@ jobs:
           cd qt_build
           ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{ENV.LINUX_FLAGS}} -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
 
-      - name: Build Qt (Windows)
-        if: contains(matrix.os, 'windows') 
+      - name: Build Qt (Windows X86)
+        if: contains(matrix.os, 'windows') && !contains(runner.arch, 'ARM64')
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
         run: |
           cd ${{env.HOME_DIR}}
+          cd qt_build
+          cmake --build . --parallel 4 -j4
+
+      - name: Build Qt (Windows ARM)
+        if: contains(matrix.os, 'windows') && contains(runner.arch, 'ARM64')
+        shell: msys2 {0}
+        env:
+          CL: /MP # Build with multiple processes
+        run: |
+          cd ${{env.HOME_DIR_BASH}}
           cd qt_build
           cmake --build . --parallel 4 -j4
   
