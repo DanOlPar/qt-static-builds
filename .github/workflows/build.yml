@@ -67,28 +67,25 @@ jobs:
           TARGETS=()
 
           if [ ${{ env.BUILD_LINUX }} = true  ]; then
-            TARGETS+=({'os':'ubuntu-24.04','toolchain':''})
+            TARGETS+=('{"os":"ubuntu-24.04","toolchain":""}')
           fi
           if [ ${{ env.BUILD_LINUX_ARM }} = true  ]; then
-            TARGETS+=({'os':'ubuntu-24.04-arm','toolchain':''})
+            TARGETS+=('{"os":"ubuntu-24.04-arm","toolchain":""}')
           fi
           if [ ${{ env.BUILD_WINDOWS }} = true  ]; then
-            # split Windows x86/x64 in two toolchains
-            TARGETS+=({'os':'windows-2025','toolchain':'mingw'})
-            TARGETS+=({'os':'windows-2025','toolchain':'msvc'})
+            TARGETS+=('{"os":"windows-2025","toolchain":"mingw"}')
+            TARGETS+=('{"os":"windows-2025","toolchain":"msvc"}')
           fi
           if [ ${{ env.BUILD_WINDOWS_ARM }} = true  ]; then
-            # Windows ARM64: MSVC only
-            TARGETS+=({'os':'windows-11-arm','toolchain':'msvc'})
+            TARGETS+=('{"os":"windows-11-arm","toolchain":"msvc"}')
           fi
           if [ ${{ env.BUILD_MACOS }} = true  ]; then
-            TARGETS+=({'os':'macos-15','toolchain':''})
+            TARGETS+=('{"os":"macos-15","toolchain":""}')
           fi
 
-          targets_json='targets='
-          targets_json+=$(printf '%s\n' "${TARGETS[@]}" | jq -R . | jq -s .)
-          echo $targets_json
-          echo $targets_json >> $GITHUB_OUTPUT
+          targets_json=$(printf '%s\n' "${TARGETS[@]}" | jq -s -c 'map(fromjson)')
+          echo "targets=$targets_json" >> "$GITHUB_OUTPUT"
+          echo "DEBUG targets -> $targets_json"
 
           # Qt versions
           V_IN="${{ env.QT_VERSION_IN }}"
