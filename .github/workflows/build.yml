@@ -260,9 +260,9 @@ jobs:
       
           $diaLib = Join-Path $installPath 'DIA SDK\lib\arm64\diaguids.lib'
           if (Test-Path $diaLib) {
-            Write-Host "✅ DIA SDK ARM64 library found at: $diaLib"
+            Write-Host "DIA SDK ARM64 library found at: $diaLib"
           } else {
-            Write-Warning "⚠️ DIA SDK not found after install — expected at: $diaLib"
+            Write-Warning "DIA SDK not found after install - expected at: $diaLib"
             exit 1
           }
         
