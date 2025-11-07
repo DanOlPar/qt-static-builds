@@ -63,7 +63,6 @@ jobs:
       - name: Build matrix (targets + qt versions)
         id: setup
         run: |
-          # Compose targets as objects {os, toolchain}
           TARGETS=()
 
           if [ ${{ env.BUILD_LINUX }} = true  ]; then
@@ -82,8 +81,14 @@ jobs:
           if [ ${{ env.BUILD_MACOS }} = true  ]; then
             TARGETS+=('{"os":"macos-15","toolchain":""}')
           fi
-
-          targets_json=$(printf '%s\n' "${TARGETS[@]}" | jq -s -c 'map(fromjson)')
+      
+          # Se TARGETS è vuoto, produci [] per sicurezza
+          if [ ${#TARGETS[@]} -eq 0 ]; then
+            targets_json='[]'
+          else
+            # <<< FIX: niente -R, niente fromjson. Slurp come array di oggetti validi.
+            targets_json=$(printf '%s\n' "${TARGETS[@]}" | jq -s -c .)
+          fi
           echo "targets=$targets_json" >> "$GITHUB_OUTPUT"
           echo "DEBUG targets -> $targets_json"
 
