@@ -238,7 +238,6 @@ jobs:
         shell: powershell
         run: |
           dir "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-          dir "C:\Program Files\Microsoft Visual Studio\Installer\"
           Write-Host "Locating Visual Studio Installer..."
           $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
           if (-Not (Test-Path $vsInstaller)) {
@@ -252,7 +251,8 @@ jobs:
             "--add", "Microsoft.VisualStudio.Component.DiaSdk", "--quiet", "--norestart", "--wait" -Wait
         
           Write-Host "DIA SDK installation complete."
-        
+          dir "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          dir "C:\Program Files\Microsoft Visual Studio\2022\Community"
           $diaLib = "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\diaguids.lib"
           if (Test-Path $diaLib) {
             Write-Host "DIA SDK ARM64 library found at: $diaLib"
