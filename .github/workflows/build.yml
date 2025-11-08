@@ -237,7 +237,6 @@ jobs:
         if: contains(matrix.target.os, 'windows') && contains(runner.arch, 'ARM64') && matrix.target.toolchain == 'msvc'
         shell: powershell
         run: |
-          dir "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\DIA SDK\lib\arm64"
           Write-Host "Locating Visual Studio Installer..."
           $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
           if (-Not (Test-Path $vsInstaller)) {
@@ -256,8 +255,41 @@ jobs:
             Write-Host "DIA SDK ARM64 library found at: $diaLib"
           } else {
             Write-Warning "DIA SDK not found after install - check Visual Studio path or workload setup."
-            dir "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\"
           }
+        
+      - name: Locate DIA SDK and export LIB/INCLUDE
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
+        shell: pwsh
+        run: |
+          $roots = @(
+            'C:\Program Files\Microsoft Visual Studio\2022\Community',
+            'C:\Program Files\Microsoft Visual Studio\2022\Enterprise',
+            'C:\Program Files\Microsoft Visual Studio\2022\Professional'
+          )
+      
+          $dia = $null
+          foreach ($r in $roots) {
+            if (Test-Path (Join-Path $r 'DIA SDK')) { $dia = Join-Path $r 'DIA SDK'; break }
+          }
+          if (-not $dia) { Write-Error "DIA SDK non trovata in VS2022 (Community/Enterprise/Professional)."; exit 1 }
+
+          # Scegli la cartella lib corretta in base all'arch del runner
+          $arch = if ("${env:RUNNER_ARCH}" -eq 'ARM64') { 'arm64' } else { 'amd64' }
+          $diaInc = Join-Path $dia 'include'
+          $diaLib = Join-Path $dia "lib\$arch"
+        
+          if (-not (Test-Path $diaInc)) { Write-Error "Include DIA non trovata: $diaInc"; exit 1 }
+          if (-not (Test-Path $diaLib)) { Write-Error "Lib DIA non trovata: $diaLib"; exit 1 }
+        
+          # Preprendi a INCLUDE/LIB così il linker MSVC le vede per primo
+          Add-Content -Path $env:GITHUB_ENV -Value "DIA_SDK_DIR=$dia"
+          Add-Content -Path $env:GITHUB_ENV -Value "INCLUDE=$diaInc;$env:INCLUDE"
+          Add-Content -Path $env:GITHUB_ENV -Value "LIB=$diaLib;$env:LIB"
+        
+          Write-Host "✅ DIA SDK: $dia"
+          Write-Host "✅ INCLUDE += $diaInc"
+          Write-Host "✅ LIB     += $diaLib"
+        
 
       # ---------- DISK SPACE LINUX ----------
       # Necessario altrimenti ubuntu non ha abbastanza spazio per buildare
