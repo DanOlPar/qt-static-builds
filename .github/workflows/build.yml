@@ -232,8 +232,9 @@ jobs:
         with:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
 
-      - name: Mirror DIA SDK from Enterprise to expected Community path
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
+      # Mirror DIA SDK from Enterprise to expected Community path
+      - name: Fix MSVC DIA SDK path
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
         shell: pwsh
         run: |
           $entBase = 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\DIA SDK'
