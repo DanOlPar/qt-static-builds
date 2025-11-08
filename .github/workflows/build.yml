@@ -256,7 +256,7 @@ jobs:
             Write-Host "DIA SDK ARM64 library found at: $diaLib"
           } else {
             Write-Warning "DIA SDK not found after install - check Visual Studio path or workload setup."
-            dir "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\""
+            dir "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\"
           }
 
       # ---------- DISK SPACE LINUX ----------
