@@ -29,10 +29,19 @@ on:
           - "6.7.3"
           #6.6.3 non compila per una issue con libzstd_static, lascio comunque per le altre platform
           - "6.6.3"
-      #       - '6.5.3'
+          #- "6.5.3"
 
       cache_sources:
         description: "Cache sources"
+        required: true
+        default: "no"
+        type: choice
+        options:
+          - "yes"
+          - "no"
+
+      github_mirror:
+        description: "Sources github mirror"
         required: true
         default: "no"
         type: choice
@@ -53,6 +62,7 @@ jobs:
       BUILD_WINDOWS_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows_arm') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
       QT_VERSION_IN: ${{inputs.qt_version}}
+      QT_USE_MIRROR_IN: ${{inputs.github_mirror}}
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.setup.outputs.targets }}
