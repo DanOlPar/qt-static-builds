@@ -67,6 +67,7 @@ jobs:
     outputs:
       targets: ${{ steps.setup.outputs.targets }}
       qt_versions: ${{ steps.setup.outputs.qt_versions }}
+      qt_sources_repo:  ${{ steps.setup.outputs.qt_sources_repo }}
     steps:
       - name: Build matrix (targets + qt versions)
         id: setup
@@ -110,6 +111,13 @@ jobs:
           qt_json+=$(printf '%s\n' "${QT_LIST[@]}" | jq -R . | jq -s .)
           echo $qt_json
           echo $qt_json >> $GITHUB_OUTPUT
+          
+          # Qt repo
+          if [ ${{ env.QT_USE_MIRROR_IN }} = true  ]; then
+            echo "qt_sources_repo='https://github.com/qt/qt5.git'" >> $GITHUB_OUTPUT
+          else
+            echo "qt_sources_repo='https://code.qt.io/qt/qt5.git'" >> $GITHUB_OUTPUT
+          fi
 
   get_sources:
     needs: setup
@@ -141,7 +149,7 @@ jobs:
           cd ~
           mkdir qtsrc
           cd qtsrc
-          git clone https://code.qt.io/qt/qt5.git . -b '${{matrix.qt}}'
+          git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
           perl init-repository
           cd ~
 
@@ -323,7 +331,7 @@ jobs:
           cd ${{env.HOME_DIR_BASH}}
           mkdir qtsrc
           cd qtsrc
-          git clone https://code.qt.io/qt/qt5.git . -b '${{matrix.qt}}'
+          git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
           perl init-repository
 
       # ---------- BUILD CACHE ----------
