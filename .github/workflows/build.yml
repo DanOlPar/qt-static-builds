@@ -27,8 +27,8 @@ on:
           - "6.9.3"
           - "6.8.3"
           - "6.7.3"
-          #6.6.3 non compila per una issue con libzstd_static, lascio comunque per le altre platform
-          - "6.6.3"
+          #6.6.3 non compila per una issue con libzstd_static 
+          #- "6.6.3"
           #- "6.5.3"
 
       cache_sources:
