@@ -43,7 +43,8 @@ on:
       github_mirror:
         description: "Sources github mirror"
         required: true
-        default: "no"
+        #metto default a true, è più veloce e dovrebbe essere equivalente
+        default: "yes"
         type: choice
         options:
           - "yes"
