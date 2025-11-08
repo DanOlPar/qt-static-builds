@@ -109,15 +109,17 @@ jobs:
           fi
           qt_json='qt_versions='
           qt_json+=$(printf '%s\n' "${QT_LIST[@]}" | jq -R . | jq -s .)
-          echo $qt_json
           echo $qt_json >> $GITHUB_OUTPUT
           
           # Qt repo
           if [ ${{ env.QT_USE_MIRROR_IN }} = true  ]; then
-            echo "qt_sources_repo='https://github.com/qt/qt5.git'" >> $GITHUB_OUTPUT
+            QT_REPO = 'https://github.com/qt/qt5.git'
           else
-            echo "qt_sources_repo='https://code.qt.io/qt/qt5.git'" >> $GITHUB_OUTPUT
+          QT_REPO = 'https://code.qt.io/qt/qt5.git'
           fi
+          echo "qt_sources_repo=$QT_REPO" >> $GITHUB_OUTPUT
+          echo $QT_REPO
+
 
   get_sources:
     needs: setup
