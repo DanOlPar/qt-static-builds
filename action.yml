@@ -9,8 +9,8 @@ runs:
   using: "composite"
   steps:
     - uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
-        if: ${{ steps.release-label.outputs.level != null }}
+      id: get-latest-tag
+      if: ${{ steps.release-label.outputs.level != null }}
 
     - name: Install Static Qt
       shell: bash
