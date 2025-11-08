@@ -112,11 +112,11 @@ jobs:
           echo $qt_json >> $GITHUB_OUTPUT
           
           # Qt repo
-          QT_REPO = ''
+          QT_REPO=''
           if [ ${{ env.QT_USE_MIRROR_IN }} = true  ]; then
-            QT_REPO = 'https://github.com/qt/qt5.git'
+            QT_REPO='https://github.com/qt/qt5.git'
           else
-            QT_REPO = 'https://code.qt.io/qt/qt5.git'
+            QT_REPO='https://code.qt.io/qt/qt5.git'
           fi
           echo "qt_sources_repo=$QT_REPO" >> $GITHUB_OUTPUT
           echo $QT_REPO
