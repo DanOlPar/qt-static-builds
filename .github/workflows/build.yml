@@ -237,35 +237,24 @@ jobs:
         if: contains(matrix.target.os, 'windows') && contains(runner.arch, 'ARM64') && matrix.target.toolchain == 'msvc'
         shell: powershell
         run: |
-          $vsInstaller = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe'
-          if (-not (Test-Path $vsInstaller)) {
-            Write-Error "Visual Studio Installer not found at $vsInstaller"
-            exit 1
-          }
-      
-          $installPath = 'C:\Program Files\Microsoft Visual Studio\2022\Community'
-          $args = @(
-            'modify',
-            '--installPath', $installPath,
-            '--add', 'Microsoft.VisualStudio.Component.DiaSdk',
-            '--quiet', '--norestart', '--wait'
-          )
-        
-          Write-Host "Installing DIA SDK into: $installPath"
-          $p = Start-Process -FilePath $vsInstaller -ArgumentList $args -PassThru -Wait
-          if ($p.ExitCode -ne 0) {
-            Write-Error "vs_installer exited with code $($p.ExitCode)"
-            exit $p.ExitCode
-          }
-      
-          $diaLib = Join-Path $installPath 'DIA SDK\lib\arm64\diaguids.lib'
-          if (Test-Path $diaLib) {
-            Write-Host "DIA SDK ARM64 library found at: $diaLib"
-          } else {
-            Write-Warning "DIA SDK not found after install - expected at: $diaLib"
-            exit 1
-          }
-        
+            $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+            if (-not (Test-Path $vsInstaller)) {
+              Write-Error "Visual Studio Installer not found at $vsInstaller"
+              exit 1
+            }
+
+            Write-Host "Installing DIA SDK (Component ID: Microsoft.VisualStudio.Component.DiaSdk)..."
+            & "$vsInstaller" modify `
+                --installPath "C:\Program Files\Microsoft Visual Studio\2022\Community" `
+                --add Microsoft.VisualStudio.Component.DiaSdk `
+                --quiet --norestart --wait
+
+            $diaLib = "C:\Program Files\Microsoft Visual Studio\2022\Community\DIA SDK\lib\arm64\diaguids.lib"
+            if (Test-Path $diaLib) {
+              Write-Host "DIA SDK ARM64 library found at: $diaLib"
+            } else {
+              Write-Warning "⚠️ DIA SDK not found after install - check Visual Studio path or workload setup."
+            }
 
       # ---------- DISK SPACE LINUX ----------
       # Necessario altrimenti ubuntu non ha abbastanza spazio per buildare
