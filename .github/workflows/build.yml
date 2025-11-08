@@ -62,7 +62,7 @@ jobs:
       BUILD_WINDOWS_ARM: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'windows_arm') }}
       BUILD_MACOS: ${{(inputs.buildtype == 'all' || inputs.buildtype == 'macos') }}
       QT_VERSION_IN: ${{inputs.qt_version}}
-      QT_USE_MIRROR_IN: ${{inputs.github_mirror}} == 'yes'
+      QT_USE_MIRROR_IN: ${{inputs.github_mirror == 'yes'}}
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.setup.outputs.targets }}
