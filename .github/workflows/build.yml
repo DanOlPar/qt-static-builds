@@ -469,7 +469,7 @@ jobs:
       - name: Copy configiguration summary
         shell: bash
         run: |
-          cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
+          cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}-config.summary
 
       - name: Upload build
         uses: actions/upload-artifact@v4
@@ -484,7 +484,7 @@ jobs:
         with:
           name: logs-${{ matrix.qt }}-${{env.OS_NAME}}
           path: |
-            ${{env.HOME_DIR}}/qt-${{matrix.qt}}-${{env.OS_NAME}}-static-config.summary
+            ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}-config.summary
           if-no-files-found: ignore
 
   release:
