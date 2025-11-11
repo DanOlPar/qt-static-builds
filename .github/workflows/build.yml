@@ -147,15 +147,33 @@ jobs:
           enableCrossOsArchive: true
           lookup-only: true
 
-      - name: Clone Qt repo (version-specific)
+      #- name: Clone Qt repo (version-specific)
+      #  if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
+      #  run: |
+      #    cd ~
+      #    mkdir qtsrc
+      #    cd qtsrc
+      #    git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
+      #    perl init-repository
+      #    cd ~
+
+      - name: Clone Qt repo (version-specific) (retry if fail, sometimes git repo isn't working properly)
         if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
-        run: |
-          cd ~
-          mkdir qtsrc
-          cd qtsrc
-          git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
-          perl init-repository
-          cd ~
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 5
+          max_attempts: 20
+          shell: bash
+          command: |
+            cd ~
+            if [ -d "qtsrc" ]; then
+              echo "qtsrc exists, removing"
+              rm -r qtsrc
+            fi
+            mkdir qtsrc
+            cd qtsrc
+            git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
+            perl init-repository
 
       - name: Save Qt Sources to cache if new (version-specific)
         id: cache-qt-save
@@ -342,16 +360,34 @@ jobs:
           path: "~/qtsrc"
           enableCrossOsArchive: true
 
-      - name: Clone Qt repo (version-specific) if not found or cache disabled
-        if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
-        shell: bash
-        run: |
-          cd ${{env.HOME_DIR_BASH}}
-          mkdir qtsrc
-          cd qtsrc
-          git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
-          perl init-repository
+      #- name: Clone Qt repo (version-specific) if not found or cache disabled
+      #  if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
+      #  shell: bash
+      #  run: |
+      #    cd ${{env.HOME_DIR_BASH}}
+      #    mkdir qtsrc
+      #    cd qtsrc
+      #    git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
+      #    perl init-repository
 
+      - name: Clone Qt repo (version-specific) if not found or cache disabled (retry if fail, sometimes git repo isn't working properly)
+        if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 5
+          max_attempts: 20
+          shell: bash
+          command: |
+            cd ${{env.HOME_DIR_BASH}}
+            if [ -d "qtsrc" ]; then
+              echo "qtsrc exists, removing"
+              rm -r qtsrc
+            fi
+            mkdir qtsrc
+            cd qtsrc
+            git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
+            perl init-repository
+      
       # ---------- BUILD CACHE ----------
       # Se possibile tengo build precedente per alleggerire il carico/ridurre il tempo di build
       - name: Restore previous build for system+version+toolchain
