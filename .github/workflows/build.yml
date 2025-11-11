@@ -259,7 +259,6 @@ jobs:
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
         shell: powershell
         run: |
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
           vcpkg install openssl:x64-windows-static
 
       #OpenSSL for MSVC
@@ -267,7 +266,6 @@ jobs:
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
         shell: powershell
         run: |
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
           vcpkg install openssl:arm64-windows-static
 
       # Mirror DIA SDK from Enterprise to expected Community path
