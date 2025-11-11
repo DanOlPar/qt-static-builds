@@ -223,7 +223,7 @@ jobs:
           echo "OS_NAME=${{runner.os}}-${{runner.arch}}-${{ matrix.target.toolchain }}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # ---------- DEPENDENCIES LINUX ----------
-      - name: Set up Linux dependencies
+      - name: Set up Linux dependencies (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
         run: |
           sudo apt-get update
@@ -233,14 +233,14 @@ jobs:
 
       # ---------- WINDOWS TOOLCHAINS ----------
       # MinGW setup (x64 ONLY)
-      - name: Set up MinGW (Windows mingw)
+      - name: Set up MinGW (Windows MinGW)
         id: install_cc
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64')
         uses: rlalik/setup-cpp-compiler@master
         with:
           compiler: latest
 
-      - name: add MinGW to PATH
+      - name: add MinGW to PATH (Windows MinGW)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64')
         uses: myci-actions/export-env-var-powershell@1
         with:
@@ -248,14 +248,22 @@ jobs:
           value: C:\ProgramData\mingw64\mingw32\bin;C:\ProgramData\mingw64\mingw64\bin;$env:PATH
 
       # MSVC setup (x64 and ARM64)
-      - name: Enable MSVC env
+      - name: Enable MSVC env (Windows MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
 
+      #OpenSSL for MSVC
+      - name: Install OpenSSL (Windows MSVC)
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
+        shell: powershell
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x64-windows-static-md
+
       # Mirror DIA SDK from Enterprise to expected Community path
-      - name: Fix MSVC DIA SDK path
+      - name: Fix MSVC DIA SDK path (Windows MSVC ARM)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
         shell: pwsh
         run: |
@@ -355,7 +363,7 @@ jobs:
 
       # ---------- CONFIGURE ----------
       # Fix necessario altrimenti sia opcua che qtnetwork definiscono i simboli di openssl andando in conflitto e non compila ncazzo se includi opcua in un'app
-      - name: Fix QtOpcUa (linux)
+      - name: Fix QtOpcUa (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}
@@ -367,7 +375,7 @@ jobs:
             echo "openssl_symbols.cpp already disabled or missing"
           fi
 
-      - name: Configure Qt (Linux)
+      - name: Configure Qt (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}
@@ -392,7 +400,7 @@ jobs:
           cd qt_build
           ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja"
 
-      - name: Configure Qt (Windows MSVC)
+      - name: Configure Qt (Windows X64 MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
         env:
           CL: /MP
@@ -412,7 +420,7 @@ jobs:
           ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DFEATURE_pdb=OFF -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
 
       # ---------- BUILD ----------
-      - name: Build Qt (Linux)
+      - name: Build Qt (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
         run: |
           cd ${{env.HOME_DIR}}
