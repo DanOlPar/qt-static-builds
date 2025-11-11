@@ -161,7 +161,6 @@ jobs:
         if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 5
           max_attempts: 50
           shell: bash
           command: |
@@ -374,7 +373,6 @@ jobs:
         if: steps.cache-qt-restore.outputs.cache-hit != 'true' || env.CACHE_SOURCES != 'yes'
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 5
           max_attempts: 50
           shell: bash
           command: |
