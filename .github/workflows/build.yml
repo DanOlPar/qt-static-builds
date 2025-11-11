@@ -162,6 +162,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           max_attempts: 50
+          timeout_minutes: 120
           shell: bash
           command: |
             cd ~
@@ -374,6 +375,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           max_attempts: 50
+          timeout_minutes: 120
           shell: bash
           command: |
             cd ${{env.HOME_DIR_BASH}}
