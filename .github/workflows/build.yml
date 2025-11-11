@@ -195,13 +195,19 @@ jobs:
         target: ${{ fromJSON(needs.setup.outputs.targets) }}
         qt: ${{ fromJSON(needs.setup.outputs.qt_versions) }}
     env:
-      COMMON_FLAGS: "-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre"
+      COMMON_FLAGS: '-no-pch -no-feature-accessibility -feature-relocatable -nomake examples -nomake tools -nomake tests -gc-binaries -no-ltcg -sql-sqlite -skip qtwebengine -qt-libjpeg -qt-libpng -qt-zlib -qt-pcre'
       # NOTA: Su linux è necessario usare OBBLIGATORIAMENTE freetype di sistema (system-freetype),
       # altrimenti non è possibile utilizzare fontconfig e di conseguenza non si possono utilizzare font di sistema ma solo font embeddati nelle app.
       # Inoltre, harfbuzz deve essere anche lui a sistema altrimenti se importato su qt-harfbuzz forza qt-freetype
-      LINUX_FLAGS: "-system-freetype -fontconfig -openssl-linked"
-      WINDOWS_FLAGS: "-qt-harfbuzz -qt-freetype"
-      MACOS_FLAGS: "-qt-harfbuzz -qt-freetype"
+      LINUX_FLAGS: '-system-freetype -fontconfig -openssl-linked'
+      WINDOWS_FLAGS: '-static-runtime -qt-harfbuzz -qt-freetype'
+      MSVC_FLAGS: '-openssl-linked'
+      MINGW_FLAGS: ''
+      MSVC_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
+      MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
+      LINUX_CMAKE: '-DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON'
+      MACOS_CMAKE: '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
+      MACOS_FLAGS: '-qt-harfbuzz -qt-freetype'
       CACHE_SOURCES: ${{(inputs.cache_sources) }}
 
     runs-on: ${{ matrix.target.os }}
@@ -422,14 +428,14 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.LINUX_FLAGS}} -- -DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.LINUX_FLAGS}} -- ${{env.LINUX_CMAKE}}
 
       - name: Configure Qt (macOS)
         if: contains(matrix.target.os, 'macos')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.MACOS_FLAGS}} -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.MACOS_FLAGS}} -- ${{env.MACOS_CMAKE}}
 
       - name: Configure Qt (Windows MinGW)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64')
@@ -440,7 +446,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja"
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MINGW_FLAGS}} -- ${{env.MINGW_CMAKE}}
 
       - name: Configure Qt (Windows X64 MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
@@ -450,7 +456,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           cd qt_build
           # -static-runtime per /MT; Ninja come generator
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DFEATURE_pdb=OFF
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}}
 
       - name: Configure Qt (Windows ARM64 MSVC)
         if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc'
@@ -459,7 +465,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -static-runtime -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} -- -G "Ninja" -DFEATURE_pdb=OFF -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
 
       # ---------- BUILD ----------
       - name: Build Qt (Ubuntu)
