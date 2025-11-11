@@ -283,14 +283,14 @@ jobs:
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
         shell: powershell
         run: |
-          vcpkg install openssl:x64-windows-static
+          vcpkg install openssl:x64-windows-static --vcpkg-root=$env:VCPKG_ROOT
 
       #OpenSSL for MSVC
       - name: Install OpenSSL (Windows MSVC ARM)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
         shell: powershell
         run: |
-          vcpkg install openssl:arm64-windows-static
+          vcpkg install openssl:arm64-windows-static --vcpkg-root=$env:VCPKG_ROOT
 
       # Mirror DIA SDK from Enterprise to expected Community path
       - name: Fix MSVC DIA SDK path (Windows MSVC ARM)
