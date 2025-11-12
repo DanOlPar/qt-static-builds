@@ -277,6 +277,14 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
+      
+      #vcpkg has wrong root
+      - name: Fix vcpkg location
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
+        uses: myci-actions/export-env-var-powershell@1
+        with:
+          name: VCPKG_ROOT
+          value: C:\vcpkg
 
       #OpenSSL for MSVC
       - name: Install OpenSSL (Windows MSVC X64)
