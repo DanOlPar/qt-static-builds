@@ -191,7 +191,7 @@ jobs:
       # Inoltre, harfbuzz deve essere anche lui a sistema altrimenti se importato su qt-harfbuzz forza qt-freetype
       LINUX_FLAGS: '-system-freetype -fontconfig -openssl-linked'
       WINDOWS_FLAGS: '-static-runtime -qt-harfbuzz -qt-freetype'
-      MSVC_FLAGS: '-openssl-linked'
+      MSVC_FLAGS: '-openssl-linked  -DFEATURE_openssl_linked=ON'
       MINGW_FLAGS: ''
       MSVC_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
       MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
