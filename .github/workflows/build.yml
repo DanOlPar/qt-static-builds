@@ -147,16 +147,6 @@ jobs:
           enableCrossOsArchive: true
           lookup-only: true
 
-      #- name: Clone Qt repo (version-specific)
-      #  if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
-      #  run: |
-      #    cd ~
-      #    mkdir qtsrc
-      #    cd qtsrc
-      #    git clone ${{needs.setup.outputs.qt_sources_repo}} . -b '${{matrix.qt}}'
-      #    perl init-repository
-      #    cd ~
-
       - name: Clone Qt repo (version-specific) (retry if fail, sometimes git repo isn't working properly)
         if: steps.cache-qt-check.outputs.cache-hit != 'true' && env.CACHE_SOURCES == 'yes'
         uses: nick-fields/retry@v3
@@ -279,7 +269,7 @@ jobs:
           arch: ${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}
       
       #vcpkg has wrong root
-      - name: Fix vcpkg location
+      - name: Fix vcpkg location (Windows MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc'
         uses: myci-actions/export-env-var-powershell@1
         with:
