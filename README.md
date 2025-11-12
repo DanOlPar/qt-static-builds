@@ -29,10 +29,13 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 ### Use it in terminal
 1. Extract the toolchain wherever you want to keep it
 2. Add the "bin" subfolder to your PATH
+3. Add the correct compiler to your PATH
 
-##Platform notes
+## Platform notes
+
 
 ### All platforms
+- Configuration summmaries for each platform and version are present in the release tab
 - All modules except QtWebEngine are included, since QtWebEngine cannot be built statically.
 - QtMultimedia has no ffmpeg backend
 
