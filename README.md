@@ -7,15 +7,10 @@ This workflow builds static binaries of Qt.
 
 All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 
-**Table of Contents**
-
-[TOCM]
-
-[TOC]
 
 ## Installation
 
-###Use in Qt Creator
+### Use in Qt Creator
 
 1. Extract the toolchain wherever you want to keep it
 2. In Qt Creator, go to "Projects" tab
@@ -31,7 +26,7 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 12. If needed, compile other fields
 13. Press "Apply"
 
-###Use it in terminal
+### Use it in terminal
 1. Extract the toolchain wherever you want to keep it
 2. Add the "bin" subfolder to your PATH
 
@@ -41,22 +36,22 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 - All modules except QtWebEngine are included, since QtWebEngine cannot be built statically.
 - QtMultimedia has no ffmpeg backend
 
-###Linux
+### Linux
 
 - Builds are configured with:
 -- Embedded libjpeg, libpng, pcre, zlib
 -- System harfuzz and freetype, since they are needed in order to use fontconfig for system fonts
 - A fix is applied to QtOpcUa, because it redefined the openssl symbols that were already defined by QtNetwork
 
-###Windows
+### Windows
 
-#####MinGW
+##### MinGW
 - The correct MinGW version must be installed to the system and configured in Qt Creator
 
-#####MSVC
+##### MSVC
 - ARM64 builds are currently untested
 
-###MacOS
+### MacOS
 - Builds are currently untested
 
 
