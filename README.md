@@ -42,8 +42,8 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 ### Linux
 
 - Builds are configured with:
--- Embedded libjpeg, libpng, pcre, zlib
--- System harfuzz and freetype, since they are needed in order to use fontconfig for system fonts
+    - Embedded libjpeg, libpng, pcre, zlib
+    - System harfuzz and freetype, since they are needed in order to use fontconfig for system fonts
 - A fix is applied to QtOpcUa, because it redefined the openssl symbols that were already defined by QtNetwork
 
 ### Windows
