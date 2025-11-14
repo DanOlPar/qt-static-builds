@@ -465,6 +465,7 @@ jobs:
         shell: bash
         if: always()
         run: |
+          ls ${{ env.HOME_DIR_BASH }}/qt_build/
           cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
 
 
