@@ -279,18 +279,11 @@ jobs:
           value: C:\vcpkg
 
       #OpenSSL for MSVC
-      - name: Install OpenSSL (Windows MSVC X64)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
-        shell: powershell
+      - name: Install OpenSSL (Windows MSVC)
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' 
         run: |
-          vcpkg install openssl:x64-windows-static --vcpkg-root=$env:VCPKG_ROOT
+          vcpkg install openssl:${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}-${{runner.os}}-static-release --vcpkg-root=$env:VCPKG_ROOT
 
-      #OpenSSL for MSVC
-      - name: Install OpenSSL (Windows MSVC ARM)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
-        shell: powershell
-        run: |
-          vcpkg install openssl:arm64-windows-static --vcpkg-root=$env:VCPKG_ROOT
 
       # Mirror DIA SDK from Enterprise to expected Community path
       - name: Fix MSVC DIA SDK path (Windows MSVC ARM)
@@ -474,6 +467,13 @@ jobs:
         run: |
           cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
 
+
+      - name: Print configure summary for debug reasons
+        shell: bash
+        if: always()
+        run: |
+          cat ${{ env.HOME_DIR_BASH }}/qt_build/config.summary
+
       # ---------- BUILD ----------
       - name: Build Qt (Ubuntu)
         if: contains(matrix.target.os, 'ubuntu')
@@ -529,20 +529,21 @@ jobs:
           cd ${{env.HOME_DIR}}
           7z a qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip qt_static
 
-      - name: Copy configiguration summary
-        shell: bash
-        run: |
-          cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}-config.summary
-
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: qt-${{matrix.qt}}-static-${{env.OS_NAME}}
           path: ${{env.HOME_DIR}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}.zip
 
-        # salva il file di configuration in modo da avere un'idea di cosa è presente nella build
-      - name: Upload configuration summaries
-        if: always()
+
+      - name: Copy configuration summary
+        shell: bash
+        run: |
+          cp ${{ env.HOME_DIR_BASH }}/qt_build/config.summary ${{env.HOME_DIR_BASH}}/qt-${{matrix.qt}}-static-${{env.OS_NAME}}-config.summary
+
+
+      # salva il file di configuration in modo da avere un'idea di cosa è presente nella build
+      - name: Upload configuration summary
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.qt }}-${{env.OS_NAME}}
@@ -574,6 +575,15 @@ jobs:
           git tag $TAG -m "Published version $TAG"
           git push -f origin $TAG
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Zip configuration summaries
+        shell: bash
+        run: |
+          cd release
+          7z a summaries.zip *.summary
+          rm *.summary
+
+
 
       - uses: softprops/action-gh-release@v2
         name: Do release
