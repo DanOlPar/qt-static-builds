@@ -194,7 +194,7 @@ jobs:
       MSVC_FLAGS: '-openssl-linked'
       MINGW_FLAGS: ''
       MSVC_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF -DFEATURE_openssl_linked=ON'
-      MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake'
+      MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
       LINUX_CMAKE: '-DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON'
       MACOS_CMAKE: '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
       MACOS_FLAGS: '-qt-harfbuzz -qt-freetype'
@@ -282,7 +282,6 @@ jobs:
         shell: powershell
         run: |
           vcpkg install openssl:x64-windows-static --vcpkg-root=$env:VCPKG_ROOT
-          vcpkg integrate install
 
       #OpenSSL for MSVC
       - name: Install OpenSSL (Windows MSVC ARM)
@@ -290,7 +289,6 @@ jobs:
         shell: powershell
         run: |
           vcpkg install openssl:arm64-windows-static --vcpkg-root=$env:VCPKG_ROOT
-          vcpkg integrate install
 
       # Mirror DIA SDK from Enterprise to expected Community path
       - name: Fix MSVC DIA SDK path (Windows MSVC ARM)
