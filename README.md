@@ -53,6 +53,7 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 
 ##### MSVC
 - ARM64 builds are currently untested
+- ARM64 builds currently do not support OpenSSL
 
 ### MacOS
 - Builds are currently untested

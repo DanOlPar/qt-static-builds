@@ -470,6 +470,7 @@ jobs:
 
       - name: Print configure log for debug reasons
         shell: bash
+        if: always()
         run: |
           cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
 
