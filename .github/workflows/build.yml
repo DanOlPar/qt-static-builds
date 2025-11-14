@@ -461,19 +461,6 @@ jobs:
           ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
 
 
-      - name: Print configure opt for debug reasons
-        shell: bash
-        if: always()
-        run: |
-          cat ${{ env.HOME_DIR_BASH }}/qt_build/config.opt
-
-      - name: Print configure tests for debug reasons
-        shell: bash
-        if: always()
-        run: |
-          cat ${{ env.HOME_DIR_BASH }}/qt_build/config.tests
-
-
       - name: Print configure summary for debug reasons
         shell: bash
         if: always()
