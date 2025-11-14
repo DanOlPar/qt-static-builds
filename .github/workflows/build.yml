@@ -282,7 +282,7 @@ jobs:
       - name: Install OpenSSL (Windows MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' 
         run: |
-          vcpkg install openssl:${{ contains(runner.arch,'ARM64') && 'arm64' || 'x64' }}-${{runner.os}}-static-release --vcpkg-root=$env:VCPKG_ROOT
+          vcpkg install openssl:${{runner.arch}}-${{runner.os}}-static-release --vcpkg-root=$env:VCPKG_ROOT
 
 
       # Mirror DIA SDK from Enterprise to expected Community path
@@ -580,7 +580,7 @@ jobs:
         shell: bash
         run: |
           cd release
-          7z a summaries.zip *.summary
+          7z a config-summaries.zip *.summary
           rm *.summary
 
 
