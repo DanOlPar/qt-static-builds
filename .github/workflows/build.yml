@@ -194,6 +194,8 @@ jobs:
       MSVC_FLAGS: '-openssl-linked'
       MINGW_FLAGS: ''
       MSVC_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF -DFEATURE_openssl_linked=ON'
+      MSVC_X64_CMAKE: '-DOPENSSL_ROOT_DIR="C:/vcpkg/packages/openssl_x64-windows-static"'
+      MSVC_ARM_CMAKE: '-DOPENSSL_ROOT_DIR="C:/vcpkg/packages/openssl_arm64-windows-static" -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"'
       MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_pdb=OFF'
       LINUX_CMAKE: '-DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON'
       MACOS_CMAKE: '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
@@ -454,7 +456,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           cd qt_build
           # -static-runtime per /MT; Ninja come generator
-          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}}
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_X64_CMAKE}}
 
       - name: Configure Qt (Windows ARM64 MSVC)
         if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc'
@@ -463,7 +465,14 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
+
+
+      - name: If configure failed, print configure log
+        if: failure() 
+        shell: bash
+        run: |
+          cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
 
       # ---------- BUILD ----------
       - name: Build Qt (Ubuntu)
