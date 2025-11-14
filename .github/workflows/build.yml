@@ -468,8 +468,7 @@ jobs:
           ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
 
 
-      - name: If configure failed, print configure log
-        if: failure() 
+      - name: Print configure log for debug reasons
         shell: bash
         run: |
           cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
