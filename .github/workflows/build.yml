@@ -50,6 +50,16 @@ on:
           - "yes"
           - "no"
 
+      skip_cached_builds:
+        description: "Skip cached builds"
+        required: true
+        default: "no"
+        type: choice
+        options:
+          - "yes"
+          - "no"
+
+
 permissions:
   contents: write
   actions: write # require to delete cache
@@ -201,6 +211,7 @@ jobs:
       MACOS_CMAKE: '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
       MACOS_FLAGS: '-qt-harfbuzz -qt-freetype'
       CACHE_SOURCES: ${{(inputs.cache_sources) }}
+      SKIP_CACHED_BUILDS: ${{inputs.skip_cached_builds == 'yes'}}
 
     runs-on: ${{ matrix.target.os }}
 
@@ -417,21 +428,21 @@ jobs:
           fi
 
       - name: Configure Qt (Ubuntu)
-        if: contains(matrix.target.os, 'ubuntu')
+        if: contains(matrix.target.os, 'ubuntu') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.LINUX_FLAGS}} -- ${{env.LINUX_CMAKE}}
 
       - name: Configure Qt (macOS)
-        if: contains(matrix.target.os, 'macos')
+        if: contains(matrix.target.os, 'macos') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.MACOS_FLAGS}} -- ${{env.MACOS_CMAKE}}
 
       - name: Configure Qt (Windows MinGW)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64')
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         env:
           CL: /MP # Build with multiple processes
           CC: ${{ steps.install_cc.outputs.cc }}
@@ -442,7 +453,7 @@ jobs:
           ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MINGW_FLAGS}} -- ${{env.MINGW_CMAKE}}
 
       - name: Configure Qt (Windows X64 MSVC)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         env:
           CL: /MP
         run: |
@@ -452,21 +463,13 @@ jobs:
           ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_X64_CMAKE}}
 
       - name: Configure Qt (Windows ARM64 MSVC)
-        if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc'
+        if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc' && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         env:
           CL: /MP
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
-
-
-      - name: Print configure log for debug reasons
-        shell: bash
-        if: always()
-        run: |
-          ls ${{ env.HOME_DIR_BASH }}/qt_build/
-          cat ${{ env.HOME_DIR_BASH }}/qt_build/config.log
 
 
       - name: Print configure summary for debug reasons
@@ -477,21 +480,21 @@ jobs:
 
       # ---------- BUILD ----------
       - name: Build Qt (Ubuntu)
-        if: contains(matrix.target.os, 'ubuntu')
+        if: contains(matrix.target.os, 'ubuntu') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           cmake --build . --parallel 4 -j4
 
       - name: Build Qt (macOS)
-        if: contains(matrix.target.os, 'macos')
+        if: contains(matrix.target.os, 'macos') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
           cmake --build . --parallel 3 -j3
 
       - name: Build Qt (Windows)
-        if: contains(matrix.target.os, 'windows')
+        if: contains(matrix.target.os, 'windows') && !(env.SKIP_CACHED_BUILDS && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
