@@ -52,8 +52,11 @@ All modules except QtWebEngine are included. QtMultimedia has no ffmpeg backend
 - The correct MinGW version must be installed to the system and configured in Qt Creator
 
 ##### MSVC
+- In order to use QtNetwork and QtOpcUa, OpenSSL must be installed. to do so, run 
+```
+vcpkg install openssl:x64-windows-static-release
+```
 - ARM64 builds are currently untested
-- ARM64 builds currently do not support OpenSSL
 
 ### MacOS
 - Builds are currently untested
