@@ -203,7 +203,7 @@ jobs:
       WINDOWS_FLAGS: '-static-runtime -qt-harfbuzz -qt-freetype'
       MSVC_FLAGS: '-openssl-linked'
       MINGW_FLAGS: ''
-      MSVC_CMAKE: '-G "Ninja" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DOPENSSL_USE_STATIC_LIBS=ON'
+      MSVC_CMAKE: '-G "Ninja" -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPENSSL_USE_STATIC_LIBS=ON'
       MSVC_X64_CMAKE: '-DFEATURE_openssl_linked=ON'
       MSVC_ARM_CMAKE: '-DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"'
       MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON'
