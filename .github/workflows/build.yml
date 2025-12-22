@@ -205,9 +205,9 @@ jobs:
       MSVC_X64_FLAGS: '-openssl-linked'
       MSVC_ARM64_FLAGS: ''
       MINGW_FLAGS: ''
-      MSVC_CMAKE: '-G "Ninja" -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPENSSL_USE_STATIC_LIBS=ON'
+      MSVC_CMAKE: '-G "Ninja" -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"'
       MSVC_X64_CMAKE: ''
-      MSVC_ARM_CMAKE: '-DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict"'
+      MSVC_ARM_CMAKE: '-DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_CXX_FLAGS="/await:strict" -DOPENSSL_USE_STATIC_LIBS=ON'
       MINGW_CMAKE: '-G "Ninja" -DOPENSSL_USE_STATIC_LIBS=ON'
       LINUX_CMAKE: '-DCMAKE_PREFIX_PATH=/usr/lib/llvm-18 -DOPENSSL_USE_STATIC_LIBS=ON -DFEATURE_openssl_linked=ON'
       MACOS_CMAKE: '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
@@ -291,11 +291,17 @@ jobs:
           name: VCPKG_ROOT
           value: C:\vcpkg
 
-      #OpenSSL for MSVC
-      - name: Install OpenSSL (Windows MSVC)
-        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' 
+      #OpenSSL for MSVC ARM
+      - name: Install OpenSSL (Windows MSVC ARM)
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && contains(runner.arch,'ARM64')
         run: |
           vcpkg install openssl:${{runner.arch}}-${{runner.os}}-static-release --vcpkg-root=$env:VCPKG_ROOT
+
+      #OpenSSL for MSVC X86
+      - name: Install OpenSSL (Windows MSVC X86)
+        if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64')
+        run: |
+          vcpkg install openssl:${{runner.arch}}-${{runner.os}}-release --vcpkg-root=$env:VCPKG_ROOT
 
 
       # Mirror DIA SDK from Enterprise to expected Community path
