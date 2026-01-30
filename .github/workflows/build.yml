@@ -440,14 +440,14 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -debug-and-release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.LINUX_FLAGS}} -- ${{env.LINUX_CMAKE}}
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.LINUX_FLAGS}} -- ${{env.LINUX_CMAKE}}
 
       - name: Configure Qt (macOS)
         if: contains(matrix.target.os, 'macos') && !(env.SKIP_CACHED_BUILDS == 'true' && steps.cache-build-restore.outputs.cache-hit == 'true')
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ~/qtsrc/configure -static -debug-and-release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.MACOS_FLAGS}} -- ${{env.MACOS_CMAKE}}
+          ~/qtsrc/configure -static -release -prefix "../qt_static" ${{ env.COMMON_FLAGS }} ${{env.MACOS_FLAGS}} -- ${{env.MACOS_CMAKE}}
 
       - name: Configure Qt (Windows MinGW)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'mingw' && !contains(runner.arch,'ARM64') && !(env.SKIP_CACHED_BUILDS == 'true' && steps.cache-build-restore.outputs.cache-hit == 'true')
@@ -458,7 +458,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -debug-and-release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MINGW_FLAGS}} -- ${{env.MINGW_CMAKE}}
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MINGW_FLAGS}} -- ${{env.MINGW_CMAKE}}
 
       - name: Configure Qt (Windows X64 MSVC)
         if: contains(matrix.target.os, 'windows') && matrix.target.toolchain == 'msvc' && !contains(runner.arch,'ARM64') && !(env.SKIP_CACHED_BUILDS == 'true' && steps.cache-build-restore.outputs.cache-hit == 'true')
@@ -468,7 +468,7 @@ jobs:
           cd ${{env.HOME_DIR}}
           cd qt_build
           # -static-runtime per /MT; Ninja come generator
-          ..\qtsrc\configure.bat -debug-and-release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} ${{env.MSVC_X64_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_X64_CMAKE}}
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} ${{env.MSVC_X64_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_X64_CMAKE}}
 
       - name: Configure Qt (Windows ARM64 MSVC)
         if: contains(matrix.target.os, 'windows') && contains(runner.arch,'ARM64') && matrix.target.toolchain == 'msvc' && !(env.SKIP_CACHED_BUILDS == 'true' && steps.cache-build-restore.outputs.cache-hit == 'true')
@@ -477,7 +477,7 @@ jobs:
         run: |
           cd ${{env.HOME_DIR}}
           cd qt_build
-          ..\qtsrc\configure.bat -debug-and-release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} ${{env.MSVC_ARM64_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
+          ..\qtsrc\configure.bat -release -static -prefix "..\qt_static" ${{ env.COMMON_FLAGS }} ${{env.WINDOWS_FLAGS}} ${{env.MSVC_FLAGS}} ${{env.MSVC_ARM64_FLAGS}} -- ${{env.MSVC_CMAKE}} ${{env.MSVC_ARM_CMAKE}}
 
 
       - name: Print configure summary for debug reasons
